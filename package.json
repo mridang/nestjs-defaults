@@ -1,0 +1,104 @@
+{
+	"name": "@mridang/nestjs-defaults",
+	"scripts": {
+		"prepack": "tsc",
+		"build": "tsc",
+		"test": "jest --verbose --config=jest.config.js --runInBand",
+		"test:watch": "npm run test -- --watch",
+		"test:debug": "jest --verbose --config=jest.config.js --runInBand --detectOpenHandles",
+		"format": "prettier --write \"**/*.{js,ts,jsx,tsx,json,css,md,html}\"",
+		"format:check": "prettier --check \"**/*.{js,ts,jsx,tsx,json,css,md,html}\"",
+		"lint": "npx eslint .",
+		"lint:fix": "npx eslint . --fix"
+	},
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"keywords": [
+		"nestjs"
+	],
+	"author": {
+		"name": "Mridang Agarwalla",
+		"email": "mridang.agarwalla@gmail.com",
+		"url": "https://github.com/mridang"
+	},
+	"files": [
+		"dist"
+	],
+	"license": "ISC",
+	"description": "A set of sane default for the NestJS framework",
+	"private": false,
+	"peerDependencies": {
+		"@aws-sdk/client-secrets-manager": "^3.654.0",
+		"@codegenie/serverless-express": "^4.15.0",
+		"@nestjs/cache-manager": "^2.2.1",
+		"@nestjs/common": "^10.0.0",
+		"@nestjs/config": "^3.1.1",
+		"@nestjs/core": "^10.0.0",
+		"@nestjs/cqrs": "^10.2.7",
+		"@nestjs/jwt": "^10.2.0",
+		"@nestjs/platform-express": "^10.0.0",
+		"@nestjs/serve-static": "^4.0.1",
+		"@ntegral/nestjs-sentry": "^4.0.1",
+		"serverless": "^3.0.0"
+	},
+	"engines": {
+		"node": "20.x"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mridang/nestjs-defaults.git"
+	},
+	"homepage": "https://github.com/mridang/nestjs-defaults",
+	"bugs": "https://github.com/mridang/nestjs-defaults/issues",
+	"devDependencies": {
+		"@nestjs/testing": "^10.4.3",
+		"@semantic-release/commit-analyzer": "^13.0.0",
+		"@semantic-release/git": "^10.0.1",
+		"@semantic-release/github": "^10.0.5",
+		"@semantic-release/npm": "^12.0.1",
+		"@semantic-release/release-notes-generator": "^14.0.0",
+		"@serverless/test": "^11.1.1",
+		"@tsconfig/node20": "latest",
+		"@types/aws-lambda": "^8.10.145",
+		"@types/compression": "^1.7.5",
+		"@types/cookie-parser": "^1.4.7",
+		"@types/hbs": "^4.0.4",
+		"@types/jest": "^29.5.12",
+		"@types/node": "^20.3.2",
+		"@types/supertest": "^6.0.2",
+		"@types/ua-parser-js": "^0.7.39",
+		"@typescript-eslint/eslint-plugin": "^7.0.2",
+		"@typescript-eslint/parser": "^7.0.2",
+		"eslint": "^8.0.1",
+		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-prettier": "^5.0.0",
+		"jest": "^29.7.0",
+		"log": "^6.3.1",
+		"node-mocks-http": "^1.16.0",
+		"npm": "^10.4.0",
+		"prettier": "^3.1.1",
+		"semantic-release": "^24.0.0",
+		"supertest": "^7.0.0",
+		"ts-jest": "^29.1.0",
+		"typescript": "^5.1.3"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"dependencies": {
+		"aws-lambda": "^1.0.7",
+		"class-transformer": "^0.5.1",
+		"class-validator": "^0.14.1",
+		"cookie-parser": "^1.4.6",
+		"express": "^4.21.0",
+		"express-handlebars": "^8.0.1",
+		"handlebars": "^4.7.8",
+		"hbs": "^4.2.0",
+		"helmet": "^7.1.0",
+		"nestjs-cls": "^4.4.1",
+		"safe-flat": "^2.1.0",
+		"ua-parser-js": "^1.0.39",
+		"winston": "^3.14.2",
+		"winston-transport": "^4.7.1"
+	}
+}
