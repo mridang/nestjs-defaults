@@ -64,7 +64,7 @@
 		"@types/cookie-parser": "^1.4.7",
 		"@types/hbs": "^4.0.4",
 		"@types/jest": "^29.5.12",
-		"@types/node": "^20.3.2",
+		"@types/node": "^22.5.5",
 		"@types/supertest": "^6.0.2",
 		"@types/ua-parser-js": "^0.7.39",
 		"@typescript-eslint/eslint-plugin": "^7.0.2",
