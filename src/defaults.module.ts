@@ -5,7 +5,7 @@ import {
   MiddlewareConsumer,
   Module,
 } from '@nestjs/common';
-import { AppController } from './app.controller';
+import { DefaultController } from './app.controller';
 import { NodeModule } from './services/core/core.module';
 import { SentryInterceptor } from '@ntegral/nestjs-sentry';
 import { APP_INTERCEPTOR } from '@nestjs/core';
@@ -34,7 +34,7 @@ export class DefaultsModule {
         CoreInightsModule,
         CoreAssetsModule,
       ],
-      controllers: [AppController],
+      controllers: [DefaultController],
       providers: [
         BetterLogger,
         {
