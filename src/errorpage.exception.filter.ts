@@ -17,9 +17,7 @@ export class CustomHttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(CustomHttpExceptionFilter.name);
   private readonly basePath: string;
 
-  constructor(
-    readonly baseDir: string = __dirname,
-  ) {
+  constructor(readonly baseDir: string = __dirname) {
     this.logger.log(
       `Looking for error pages ${path.join(baseDir, '..', 'views', 'errors')}`,
     );
