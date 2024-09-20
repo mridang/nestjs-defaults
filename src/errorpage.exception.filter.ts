@@ -4,7 +4,9 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  Inject,
   Logger,
+  Optional,
 } from '@nestjs/common';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { Response } from 'express';
@@ -17,20 +19,24 @@ export class CustomHttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(CustomHttpExceptionFilter.name);
   private readonly basePath: string;
 
-  constructor() {
+  constructor(
+    @Inject()
+    @Optional()
+    readonly baseDir: string = __dirname,
+  ) {
     this.logger.log(
-      `Looking for error pages ${path.join(__dirname, '..', 'views', 'errors')}`,
+      `Looking for error pages ${path.join(baseDir, '..', 'views', 'errors')}`,
     );
     if (
-      fs.existsSync(path.join(__dirname, '..', 'views', 'errors', `500.html`))
+      fs.existsSync(path.join(baseDir, '..', 'views', 'errors', `500.html`))
     ) {
-      this.basePath = path.join(__dirname, '..', 'views', 'errors');
+      this.basePath = path.join(baseDir, '..', 'views', 'errors');
     } else {
       this.logger.log(
-        `Looking for error pages ${path.join(__dirname, 'views', 'errors')}`,
+        `Looking for error pages ${path.join(baseDir, 'views', 'errors')}`,
       );
-      if (fs.existsSync(path.join(__dirname, 'views', 'errors', `500.html`))) {
-        this.basePath = path.join(__dirname, 'views', 'errors');
+      if (fs.existsSync(path.join(baseDir, 'views', 'errors', `500.html`))) {
+        this.basePath = path.join(baseDir, 'views', 'errors');
       } else {
         throw new Error('Unable to find directory containing error pages');
       }

@@ -13,9 +13,12 @@ handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);
 });
 
-export default function configure(nestApp: NestExpressApplication) {
+export default function configure(
+  nestApp: NestExpressApplication,
+  baseDir?: string,
+) {
   nestApp.useLogger(nestApp.get(BetterLogger));
-  nestApp.useGlobalFilters(new CustomHttpExceptionFilter());
+  nestApp.useGlobalFilters(new CustomHttpExceptionFilter(baseDir));
   nestApp.setViewEngine('hbs');
   nestApp.setBaseViewsDir(
     fs.existsSync(join(__dirname, 'views'))
@@ -35,11 +38,11 @@ export default function configure(nestApp: NestExpressApplication) {
     },
   );
 
-  nestApp.use('/robots.txt', (req: Request, res: Response) => {
+  nestApp.use('/robots.txt', (_req: Request, res: Response) => {
     res.type('text/plain');
     res.send('User-agent: *\nDisallow: /');
   });
-  nestApp.use((req: Request, res: Response, next: NextFunction) => {
+  nestApp.use((_req: Request, res: Response, next: NextFunction) => {
     res.setHeader(
       'X-Lambda-Start',
       process.env.LAMBDA_COLD_START === 'warm' ? 'Warm' : 'Cold',
