@@ -4,9 +4,7 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
-  Inject,
   Logger,
-  Optional,
 } from '@nestjs/common';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { Response } from 'express';
@@ -20,8 +18,6 @@ export class CustomHttpExceptionFilter implements ExceptionFilter {
   private readonly basePath: string;
 
   constructor(
-    @Inject()
-    @Optional()
     readonly baseDir: string = __dirname,
   ) {
     this.logger.log(
