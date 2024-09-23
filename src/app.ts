@@ -21,9 +21,9 @@ export default function configure(
   nestApp.useGlobalFilters(new CustomHttpExceptionFilter(baseDir));
   nestApp.setViewEngine('hbs');
   nestApp.setBaseViewsDir(
-    fs.existsSync(join(__dirname, 'views'))
-      ? join(__dirname, 'views')
-      : join(__dirname, '..', 'views'),
+    fs.existsSync(join(baseDir || __dirname, 'views'))
+      ? join(baseDir || __dirname, 'views')
+      : join(baseDir || __dirname, '..', 'views'),
   );
   nestApp.engine(
     'hbs',
