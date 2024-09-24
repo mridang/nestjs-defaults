@@ -29,14 +29,19 @@ jobs:
         run: |
           IMAGES_DIR="./docker_images"
           COMBINED_IMAGES_TAR="$IMAGES_DIR/combined_images.tar"
+          DOCKER_COMPOSE_FILE="docker-compose.yml"
           
-          if [ -f "$COMBINED_IMAGES_TAR" ]; then
-          docker image load -i "$COMBINED_IMAGES_TAR"
+          if [ -f "$DOCKER_COMPOSE_FILE" ]; then
+            if [ -f "$COMBINED_IMAGES_TAR" ]; then
+              docker image load -i "$COMBINED_IMAGES_TAR"
+            else
+              mkdir -p "$IMAGES_DIR"
+              IMAGES=$(docker compose config --images)
+              docker pull $IMAGES
+              docker image save -o "$COMBINED_IMAGES_TAR" $IMAGES
+            fi
           else
-          mkdir -p "$IMAGES_DIR"
-          IMAGES=$(docker compose config --images)
-          docker pull $IMAGES
-          docker image save -o "$COMBINED_IMAGES_TAR" $IMAGES
+            echo "No docker-compose.yml file found. Exiting."
           fi
 
       - name: Setup Node.js
