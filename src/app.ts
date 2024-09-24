@@ -8,6 +8,7 @@ import { default as helm } from 'helmet';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { BetterLogger } from './logger';
+import { engine } from 'express-handlebars';
 
 handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);
@@ -25,18 +26,7 @@ export default function configure(
       ? join(baseDir || __dirname, 'views')
       : join(baseDir || __dirname, '..', 'views'),
   );
-  nestApp.engine(
-    'hbs',
-    (
-      filePath: string,
-      options: Record<string, object>,
-      callback: (err: Error | null, rendered?: string) => void,
-    ) => {
-      const template = handlebars.compile(fs.readFileSync(filePath, 'utf8'));
-      const result = template(options);
-      callback(null, result);
-    },
-  );
+  nestApp.engine('hbs', engine());
 
   nestApp.use('/robots.txt', (_req: Request, res: Response) => {
     res.type('text/plain');
