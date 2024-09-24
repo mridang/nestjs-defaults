@@ -26,7 +26,7 @@ export default function configure(
       ? join(baseDir || __dirname, 'views')
       : join(baseDir || __dirname, '..', 'views'),
   );
-  nestApp.engine('hbs', engine());
+  nestApp.engine('hbs', engine({extname: '.hbs'}));
 
   nestApp.use('/robots.txt', (_req: Request, res: Response) => {
     res.type('text/plain');
