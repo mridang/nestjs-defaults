@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { SentryModule } from '@ntegral/nestjs-sentry';
+import { SentryModule } from './sentry';
 
 /**
  * The `CoreInsightsModule` is an asynchronous configuration for the

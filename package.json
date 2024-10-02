@@ -38,7 +38,6 @@
 		"@nestjs/jwt": "^10.2.0",
 		"@nestjs/platform-express": "^10.0.0",
 		"@nestjs/serve-static": "^4.0.1",
-		"@ntegral/nestjs-sentry": "^4.0.1",
 		"serverless": "^3.0.0"
 	},
 	"engines": {
@@ -50,6 +49,9 @@
 	},
 	"homepage": "https://github.com/mridang/nestjs-defaults",
 	"bugs": "https://github.com/mridang/nestjs-defaults/issues",
+	"optionalDependencies": {
+		"@nestjs/graphql": "~12.0.11"
+	},
 	"devDependencies": {
 		"@mridang/eslint-defaults": "^1.0.0",
 		"@nestjs/testing": "^10.4.3",
@@ -58,6 +60,7 @@
 		"@semantic-release/github": "^10.0.5",
 		"@semantic-release/npm": "^12.0.1",
 		"@semantic-release/release-notes-generator": "^14.0.0",
+		"@sentry/types": "^8.32.0",
 		"@tsconfig/node20": "latest",
 		"@types/aws-lambda": "^8.10.145",
 		"@types/cookie-parser": "^1.4.7",
@@ -80,6 +83,7 @@
 	},
 	"dependencies": {
 		"@jest/globals": "^29.7.0",
+		"@sentry/node": "^8.32.0",
 		"aws-lambda": "^1.0.7",
 		"class-validator": "^0.14.1",
 		"cookie-parser": "^1.4.6",

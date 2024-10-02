@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { DefaultController } from './app.controller';
 import { NodeModule } from './services/core/core.module';
-import { SentryInterceptor } from '@ntegral/nestjs-sentry';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TimingInterceptor } from './timing.interceptor';
 import { BetterLogger } from './logger';
@@ -16,6 +15,7 @@ import { CoreInightsModule } from './services/insights.module';
 import { CoreAssetsModule } from './services/assets.module';
 import { CoreContinuationModule } from './services/clsstore.module';
 import { SettingsModule } from './services/settings/settings.module';
+import { SentryInterceptor } from './services/sentry';
 
 @Global()
 @Module({})
