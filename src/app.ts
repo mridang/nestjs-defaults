@@ -1,7 +1,6 @@
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { CustomHttpExceptionFilter } from './errorpage.exception.filter';
 import { join } from 'path';
-import { handlebars } from 'hbs';
 import fs from 'fs';
 import cookieParser from 'cookie-parser';
 // eslint-disable-next-line import/namespace
@@ -10,10 +9,6 @@ import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { BetterLogger } from './logger';
 import { engine } from 'express-handlebars';
-
-handlebars.registerHelper('json', function (context) {
-  return JSON.stringify(context);
-});
 
 export default function configure(
   nestApp: NestExpressApplication,
@@ -27,7 +22,17 @@ export default function configure(
       ? join(baseDir || __dirname, 'views')
       : join(baseDir || __dirname, '..', 'views'),
   );
-  nestApp.engine('hbs', engine({ extname: '.hbs' }));
+  nestApp.engine(
+    'hbs',
+    engine({
+      extname: '.hbs',
+      helpers: {
+        json: function (context: object) {
+          return JSON.stringify(context);
+        },
+      },
+    }),
+  );
 
   nestApp.use('/robots.txt', (_req: Request, res: Response) => {
     res.type('text/plain');
