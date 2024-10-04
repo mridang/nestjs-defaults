@@ -10,7 +10,9 @@ export interface SentryCloseOptions {
 }
 
 export type SentryModuleOptions = Omit<Options, 'integrations'> & {
-  dsn: `https://${string}@${string}.ingest.sentry.io/${number}`;
+  dsn:
+    | `https://${string}@${string}.ingest.sentry.io/${number}`
+    | `https://${string}@${string}.ingest.us.sentry.io/${number}`;
   integrations?: Integration[];
   close?: SentryCloseOptions;
 } & ConsoleLoggerOptions;

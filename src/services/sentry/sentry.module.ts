@@ -1,12 +1,18 @@
-import { Module, DynamicModule } from '@nestjs/common';
+import {
+  Module,
+  DynamicModule,
+  NestModule,
+  MiddlewareConsumer,
+} from '@nestjs/common';
 import { SentryCoreModule } from './sentry-core.module';
 import {
   SentryModuleOptions,
   SentryModuleAsyncOptions,
 } from './sentry.interfaces';
+import { NelMiddleware } from './nel/nel.middleware';
 
 @Module({})
-export class SentryModule {
+export class SentryModule implements NestModule {
   public static forRoot(options: SentryModuleOptions): DynamicModule {
     return {
       module: SentryModule,
@@ -19,5 +25,9 @@ export class SentryModule {
       module: SentryModule,
       imports: [SentryCoreModule.forRootAsync(options)],
     };
+  }
+
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(NelMiddleware).forRoutes('*');
   }
 }

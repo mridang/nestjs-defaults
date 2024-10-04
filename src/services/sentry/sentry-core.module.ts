@@ -7,6 +7,8 @@ import {
 import { SENTRY_MODULE_OPTIONS, SENTRY_TOKEN } from './sentry.constants';
 import { SentryService } from './sentry.service';
 import { createSentryProviders } from './sentry.providers';
+import { NelController } from './nel/nel.controller';
+import { NelMiddleware } from './nel/nel.middleware';
 
 @Global()
 @Module({})
@@ -15,9 +17,10 @@ export class SentryCoreModule {
     const provider = createSentryProviders(options);
 
     return {
+      controllers: [NelController],
       exports: [provider, SentryService],
       module: SentryCoreModule,
-      providers: [provider, SentryService],
+      providers: [provider, SentryService, NelMiddleware],
     };
   }
 
@@ -29,6 +32,7 @@ export class SentryCoreModule {
     };
 
     return {
+      controllers: [NelController],
       exports: [provider, SentryService],
       imports: options.imports,
       module: SentryCoreModule,
@@ -36,6 +40,7 @@ export class SentryCoreModule {
         ...this.createAsyncProviders(options),
         provider,
         SentryService,
+        NelMiddleware,
       ],
     };
   }
