@@ -25,7 +25,6 @@ export class SentryInterceptor implements NestInterceptor {
   }
 
   intercept(context: ExecutionContext, next: CallHandler) {
-    // first param would be for events, second is for errors
     return next.handle().pipe(
       tap({
         next: () => {},
