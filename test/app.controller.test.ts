@@ -116,6 +116,7 @@ describe('app.controller test', () => {
       .set('Accept', 'text/html')
       .expect(HttpStatus.INTERNAL_SERVER_ERROR)
       .expect('Content-Type', 'text/html; charset=UTF-8')
+      .expect('x-exception-id', /^.*?$/)
       .expect((response) => {
         if (!response.text.includes('<title>Internal server error</title>')) {
           throw new Error('Expected text not found in response');
@@ -129,6 +130,7 @@ describe('app.controller test', () => {
       .set('Accept', 'text/html')
       .expect(HttpStatus.INTERNAL_SERVER_ERROR)
       .expect('Content-Type', 'text/html; charset=UTF-8')
+      .expect('x-exception-id', /^.*?$/)
       .expect((response) => {
         if (!response.text.includes('<title>Internal server error</title>')) {
           throw new Error('Expected text not found in response');
@@ -139,11 +141,7 @@ describe('app.controller test', () => {
   test('should set and read a cookie', async () => {
     await request(testModule.app.getHttpServer())
       .get('/set-cookie')
-      .expect((res) => {
-        expect(res.headers['set-cookie']).toContainEqual(
-          expect.stringContaining(`test=NestJS`),
-        );
-      });
+      .expect('set-cookie', /.*test=NestJS.*/);
 
     await request(testModule.app.getHttpServer())
       .get('/read-cookie')
@@ -155,42 +153,37 @@ describe('app.controller test', () => {
   test('should include security headers', async () => {
     await request(testModule.app.getHttpServer())
       .get('/some-path')
-      .expect((res) => {
-        expect(res.headers['x-dns-prefetch-control']).toBeDefined();
-        expect(res.headers['x-frame-options']).toBeDefined();
-      });
+      .expect('x-dns-prefetch-control', /.+?/)
+      .expect('x-frame-options', /.+?/);
   });
 
   test('should have the Server-Timing header', async () => {
     await request(testModule.app.getHttpServer())
       .get('/health')
       .expect(HttpStatus.OK)
-      .expect((res) => {
-        expect(res.headers['server-timing']).toMatch(
-          /total;dur=\d+(\.\d+)?;desc="App Total"/,
-        );
-      });
+      .expect('server-timing', /total;dur=\d+(\.\d+)?;desc="App Total"/);
   });
 
   test('should handle request validation', async () => {
-    const response = await request(testModule.app.getHttpServer())
+    await request(testModule.app.getHttpServer())
       .post('/validate')
       .send({
         email: 'not-an-email',
       })
-      .expect(HttpStatus.BAD_REQUEST);
-
-    expect(response.body).toMatchObject({
-      statusCode: HttpStatus.BAD_REQUEST,
-      path: '/validate',
-    });
+      .expect(HttpStatus.BAD_REQUEST)
+      .expect((response) => {
+        expect(response.body).toMatchObject({
+          statusCode: HttpStatus.BAD_REQUEST,
+          path: '/validate',
+        });
+      });
   });
 
   test('should disallow all crawling', async () => {
     await request(testModule.app.getHttpServer())
       .get('/robots.txt')
       .expect('Content-Type', /text\/plain/)
-      .expect(200)
+      .expect(HttpStatus.OK)
       .then((response) => {
         expect(response.text).toContain('User-agent: *');
         expect(response.text).toContain('Disallow: /');
