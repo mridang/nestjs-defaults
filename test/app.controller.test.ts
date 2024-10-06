@@ -141,6 +141,7 @@ describe('app.controller test', () => {
   test('should set and read a cookie', async () => {
     await request(testModule.app.getHttpServer())
       .get('/set-cookie')
+      .expect(HttpStatus.OK)
       .expect('set-cookie', /.*test=NestJS.*/);
 
     await request(testModule.app.getHttpServer())
@@ -194,7 +195,7 @@ describe('app.controller test', () => {
     await request(testModule.app.getHttpServer())
       .get('/cls-ctx')
       .expect('Content-Type', /application\/json/)
-      .expect(200)
+      .expect(HttpStatus.OK)
       .then((response) => {
         expect(response.body).toEqual({
           url: {
