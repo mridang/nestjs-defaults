@@ -24,6 +24,10 @@ describe('nel.controller test', () => {
       .then((nest) => nest.init());
   });
 
+  afterAll(async () => {
+    await testModule?.close();
+  });
+
   test('that nel reports are handled and sent to sentry', () => {
     return request(testModule.getHttpServer())
       .post('/report')

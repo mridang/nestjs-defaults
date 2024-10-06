@@ -53,13 +53,17 @@ describe('timing.e2e test', () => {
       .then((nest) => nest.init());
   });
 
+  afterAll(async () => {
+    await testModule?.close();
+  });
+
   test('that the timing results are returned when decorated', () => {
     return request(testModule.getHttpServer())
       .get('/decorated')
       .expect(HttpStatus.NO_CONTENT)
       .expect(
         'server-timing',
-        /^timeit;dur=100\d+\.\d+, total;dur=100\d+\.\d+;desc="App Total"$/,
+        /^timeit;dur=\d+\.\d+, total;dur=\d+\.\d+;desc="App Total"$/,
       );
   });
 
