@@ -1,4 +1,12 @@
-import { Module, Global, Provider, Type, DynamicModule } from '@nestjs/common';
+import {
+  Module,
+  Global,
+  Provider,
+  Type,
+  DynamicModule,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import {
   SentryModuleAsyncOptions,
   SentryOptionsFactory,
@@ -9,6 +17,8 @@ import { SentryService } from './sentry.service';
 import { createSentryProviders } from './sentry.providers';
 import { NelController } from './nel/nel.controller';
 import { NelMiddleware } from './nel/nel.middleware';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { SentryInterceptor } from './sentry.interceptor';
 
 @Global()
 @Module({})
@@ -20,7 +30,24 @@ export class SentryCoreModule {
       controllers: [NelController],
       exports: [provider, SentryService],
       module: SentryCoreModule,
-      providers: [provider, SentryService, NelMiddleware],
+      providers: [
+        provider,
+        SentryService,
+        NelMiddleware,
+        {
+          provide: APP_INTERCEPTOR,
+          useFactory: () =>
+            new SentryInterceptor({
+              filters: [
+                {
+                  type: HttpException,
+                  filter: (exception: HttpException) =>
+                    HttpStatus.INTERNAL_SERVER_ERROR > exception.getStatus(),
+                },
+              ],
+            }),
+        },
+      ],
     };
   }
 
@@ -41,6 +68,19 @@ export class SentryCoreModule {
         provider,
         SentryService,
         NelMiddleware,
+        {
+          provide: APP_INTERCEPTOR,
+          useFactory: () =>
+            new SentryInterceptor({
+              filters: [
+                {
+                  type: HttpException,
+                  filter: (exception: HttpException) =>
+                    HttpStatus.INTERNAL_SERVER_ERROR > exception.getStatus(),
+                },
+              ],
+            }),
+        },
       ],
     };
   }
