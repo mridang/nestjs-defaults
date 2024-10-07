@@ -11,6 +11,24 @@ import { Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 import { isObject } from '@nestjs/common/utils/shared.utils';
+import { sep, resolve, join, dirname } from 'path';
+import { existsSync } from 'fs';
+
+const getPaths = (path: string, ...segments: string[]): string[] => {
+  return resolve(process.cwd(), path)
+    .split(sep)
+    .reduceRight(
+      (acc, _, i, arr) =>
+        arr
+          .slice(0, i + 1)
+          .join(sep)
+          .startsWith(process.cwd())
+          ? [join(arr.slice(0, i + 1).join(sep), ...segments), ...acc]
+          : acc,
+      [] as string[],
+    )
+    .reverse();
+};
 
 @Catch()
 export class CustomHttpExceptionFilter implements ExceptionFilter {
@@ -18,24 +36,17 @@ export class CustomHttpExceptionFilter implements ExceptionFilter {
   private readonly basePath: string;
 
   constructor(readonly baseDir: string = __dirname) {
-    this.logger.log(
-      `Looking for error pages ${path.join(baseDir, '..', 'views', 'errors')}`,
-    );
-    if (
-      fs.existsSync(path.join(baseDir, '..', 'views', 'errors', `500.html`))
-    ) {
-      this.basePath = path.join(baseDir, '..', 'views', 'errors');
+    const allPath = getPaths(__dirname, 'views', 'errors', '500.html');
+    const existingPath = allPath.find(existsSync);
+
+    if (existingPath) {
+      this.basePath = dirname(existingPath);
     } else {
-      this.logger.log(
-        `Looking for error pages ${path.join(baseDir, 'views', 'errors')}`,
-      );
-      if (fs.existsSync(path.join(baseDir, 'views', 'errors', `500.html`))) {
-        this.basePath = path.join(baseDir, 'views', 'errors');
-      } else {
-        throw new Error('Unable to find directory containing error pages');
-      }
+      throw new Error('No error pages were found in ' + allPath.join(', '));
     }
+    console.log(this.basePath);
   }
+
   catch(exception: Error, host: ArgumentsHost) {
     if (
       exception instanceof HttpException ||

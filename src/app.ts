@@ -1,5 +1,5 @@
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { CustomHttpExceptionFilter } from './errorpage.exception.filter';
+import { CustomHttpExceptionFilter } from './services/errors/errors.filter';
 import { join } from 'path';
 import fs from 'fs';
 import cookieParser from 'cookie-parser';
