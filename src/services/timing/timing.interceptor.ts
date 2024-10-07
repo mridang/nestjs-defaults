@@ -5,7 +5,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { finalize } from 'rxjs/operators';
 import { AsyncLocalStorage } from 'async_hooks';
 
 const asyncLocalStorage = new AsyncLocalStorage();
@@ -24,8 +24,9 @@ export class TimingInterceptor implements NestInterceptor {
 
     return asyncLocalStorage.run(new Map<string, Timing>(), () => {
       const store = asyncLocalStorage.getStore() as Map<string, Timing>;
+
       return next.handle().pipe(
-        tap(() => {
+        finalize(() => {
           const executionTime = performance.now() - startTime;
 
           const serverTimingHeader = Array.from(store.values())
