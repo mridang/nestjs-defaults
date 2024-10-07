@@ -36,7 +36,7 @@ export class CustomHttpExceptionFilter implements ExceptionFilter {
   private readonly basePath: string;
 
   constructor(readonly baseDir: string = __dirname) {
-    const allPath = getPaths(__dirname, 'views', 'errors', '500.html');
+    const allPath = getPaths(baseDir, 'views', 'errors', '500.html');
     const existingPath = allPath.find(existsSync);
 
     if (existingPath) {
@@ -44,7 +44,6 @@ export class CustomHttpExceptionFilter implements ExceptionFilter {
     } else {
       throw new Error('No error pages were found in ' + allPath.join(', '));
     }
-    console.log(this.basePath);
   }
 
   catch(exception: Error, host: ArgumentsHost) {
