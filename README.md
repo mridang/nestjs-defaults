@@ -43,7 +43,7 @@ The library exposes a module that should be imported in the root module.
 Importing that module will configure all the necessary defaults. The module
 requires that you specify the name of an AWS Secrets Manager configuration.
 
-```typescript
+```
 import { Global, Module } from '@nestjs/common';
 import { DefaultsModule } from '@mridang/nestjs-defaults';
 
@@ -66,7 +66,7 @@ The library also provides a `configure` convenience method that can be used for
 setting up the transport e.g. the Handlebars templating engine, support for
 parsing cookies, validation, etc.
 
-```typescript
+```
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
