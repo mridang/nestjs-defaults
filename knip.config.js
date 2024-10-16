@@ -1,3 +1,3 @@
 module.exports = {
-  entry: ['src/index.ts', 'src/main.ts'],
+  entry: ['src/index.ts', 'test/main.ts'],
 };
