@@ -15,7 +15,7 @@ export default function configure(
   baseDir?: string,
 ) {
   nestApp.useLogger(nestApp.get(BetterLogger));
-  nestApp.useGlobalFilters(new CustomHttpExceptionFilter(baseDir));
+  nestApp.useGlobalFilters(new CustomHttpExceptionFilter());
   nestApp.setViewEngine('hbs');
   nestApp.setBaseViewsDir(
     fs.existsSync(join(baseDir || __dirname, 'views'))

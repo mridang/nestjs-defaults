@@ -18,7 +18,7 @@ class DynamicController {
   }
 }
 
-describe('timing.e2e test', () => {
+describe('errors.e2e test', () => {
   let testModule: NestExpressApplication;
 
   beforeAll(async () => {
@@ -49,7 +49,7 @@ describe('timing.e2e test', () => {
       .get('/')
       .set('Accept', 'text/html')
       .expect(HttpStatus.UNAUTHORIZED)
-      .expect('Content-Type', 'text/html; charset=UTF-8')
+      .expect('Content-Type', 'text/html; charset=utf-8')
       .expect((response) => {
         expect(response.text).toContain('<title>Unauthorized</title>');
       });

@@ -22,7 +22,6 @@ export class SentryService
   ) {
     super();
     if (!(opts && opts.dsn)) {
-      // console.log('options not found. Did you use SentryModule.forRoot?');
       return;
     }
     const { integrations = [], ...sentryOptions } = opts;
