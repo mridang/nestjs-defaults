@@ -124,7 +124,7 @@ const ErrorPage: FunctionalComponent<{
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
-          crossorigin="1"
+          crossOrigin="1"
         />
         <link
           href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
