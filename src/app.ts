@@ -15,7 +15,7 @@ export default function configure(
   baseDir?: string,
 ) {
   nestApp.useLogger(nestApp.get(BetterLogger));
-  nestApp.useGlobalFilters(new CustomHttpExceptionFilter(baseDir));
+  nestApp.useGlobalFilters(new CustomHttpExceptionFilter());
   nestApp.setViewEngine('hbs');
   nestApp.setBaseViewsDir(
     fs.existsSync(join(baseDir || __dirname, 'views'))
@@ -66,8 +66,9 @@ export default function configure(
             '*.sentry.io',
           ],
           'worker-src': ["'self'", 'blob:'],
-          'style-src': ["'self'", "'unsafe-inline'"],
+          'style-src': ["'self'", "'unsafe-inline'", 'fonts.googleapis.com'],
           'img-src': ["'self'", 'data:', 'avatars.githubusercontent.com'],
+          'font-src': ["'self'", 'fonts.gstatic.com'],
           'form-action': ['*'],
         },
       },

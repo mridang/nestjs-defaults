@@ -11,12 +11,14 @@
     "esModuleInterop": true,
     "outDir": "dist",
     "typeRoots": ["./node_modules/@types", "./types"],
-    "declaration": true
+    "declaration": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
   },
   "include": [
     "src/**/*",
     "types/**/*"
-  ],
+, "test/main.ts"  ],
   "exclude": [
     "node_modules",
     "**/*.spec.ts",

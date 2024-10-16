@@ -52,11 +52,6 @@ class DynamicController {
     return req.cookies['test'] || 'No cookie found';
   }
 
-  @Get('cors-test')
-  getCorsTest() {
-    return { message: 'CORS is enabled' };
-  }
-
   @Post('validate')
   validateTest(@Body() testDto: TestDTO) {
     return testDto;
@@ -90,19 +85,19 @@ describe('app.controller test', () => {
     await testModule.afterAll();
   });
 
-  test('/health (GET)', () => {
+  test('that the health-check endpoint is operational', () => {
     return request(testModule.app.getHttpServer())
       .get('/health')
-      .expect(HttpStatus.OK)
-      .expect('Ok');
+      .expect(HttpStatus.NO_CONTENT)
+      .expect('');
   });
 
-  test('/404 (GET)', async () => {
+  test('that the error-handler handles http-400 errors', async () => {
     await request(testModule.app.getHttpServer())
       .get('/404')
       .set('Accept', 'text/html')
       .expect(HttpStatus.NOT_FOUND)
-      .expect('Content-Type', 'text/html; charset=UTF-8')
+      .expect('Content-Type', 'text/html; charset=utf-8')
       .expect((response) => {
         if (!response.text.includes('<title>Not Found</title>')) {
           throw new Error('Expected text not found in response');
@@ -110,35 +105,35 @@ describe('app.controller test', () => {
       });
   });
 
-  test('/500 (GET)', async () => {
+  test('that the error-handler handles http-500 errors', async () => {
     await request(testModule.app.getHttpServer())
       .get('/500')
       .set('Accept', 'text/html')
       .expect(HttpStatus.INTERNAL_SERVER_ERROR)
-      .expect('Content-Type', 'text/html; charset=UTF-8')
+      .expect('Content-Type', 'text/html; charset=utf-8')
       .expect('x-exception-id', /^.*?$/)
       .expect((response) => {
-        if (!response.text.includes('<title>Internal server error</title>')) {
+        if (!response.text.includes('<title>Internal Server Error</title>')) {
           throw new Error('Expected text not found in response');
         }
       });
   });
 
-  test('/error (GET)', async () => {
+  test('that the error-handler handles non-http errors', async () => {
     await request(testModule.app.getHttpServer())
       .get('/error')
       .set('Accept', 'text/html')
       .expect(HttpStatus.INTERNAL_SERVER_ERROR)
-      .expect('Content-Type', 'text/html; charset=UTF-8')
+      .expect('Content-Type', 'text/html; charset=utf-8')
       .expect('x-exception-id', /^.*?$/)
       .expect((response) => {
-        if (!response.text.includes('<title>Internal server error</title>')) {
+        if (!response.text.includes('<title>Internal Server Error</title>')) {
           throw new Error('Expected text not found in response');
         }
       });
   });
 
-  test('should set and read a cookie', async () => {
+  test('the application is configured to process cookies', async () => {
     await request(testModule.app.getHttpServer())
       .get('/set-cookie')
       .expect(HttpStatus.OK)
@@ -151,21 +146,37 @@ describe('app.controller test', () => {
       .expect('NestJS');
   });
 
-  test('should include security headers', async () => {
+  test('that the application returns the security headers', async () => {
     await request(testModule.app.getHttpServer())
-      .get('/some-path')
+      .get('/health')
+      .expect(HttpStatus.NO_CONTENT)
       .expect('x-dns-prefetch-control', /.+?/)
       .expect('x-frame-options', /.+?/);
   });
 
-  test('should have the Server-Timing header', async () => {
+  test('that the application returns the nel-report headers', async () => {
     await request(testModule.app.getHttpServer())
       .get('/health')
-      .expect(HttpStatus.OK)
+      .expect(HttpStatus.NO_CONTENT)
+      .expect('nel', /.*nel-endpoint.*/);
+  });
+
+  test('that the application returns the cross-origin headers', async () => {
+    await request(testModule.app.getHttpServer())
+      .get('/health')
+      .expect(HttpStatus.NO_CONTENT)
+      .expect('access-control-allow-origin', '*')
+      .expect('access-control-allow-credentials', 'true');
+  });
+
+  test('that the application returns the server-timing header', async () => {
+    await request(testModule.app.getHttpServer())
+      .get('/health')
+      .expect(HttpStatus.NO_CONTENT)
       .expect('server-timing', /total;dur=\d+(\.\d+)?;desc="App Total"/);
   });
 
-  test('should handle request validation', async () => {
+  test('that the application supports request validation', async () => {
     await request(testModule.app.getHttpServer())
       .post('/validate')
       .send({
@@ -180,7 +191,7 @@ describe('app.controller test', () => {
       });
   });
 
-  test('should disallow all crawling', async () => {
+  test('that the application disallows all crawling', async () => {
     await request(testModule.app.getHttpServer())
       .get('/robots.txt')
       .expect('Content-Type', /text\/plain/)
@@ -188,6 +199,16 @@ describe('app.controller test', () => {
       .then((response) => {
         expect(response.text).toContain('User-agent: *');
         expect(response.text).toContain('Disallow: /');
+      });
+  });
+
+  test('that the application renders a version badge', async () => {
+    await request(testModule.app.getHttpServer())
+      .get('/version.svg')
+      .expect('Content-Type', 'image/svg+xml; charset=utf-8')
+      .expect(HttpStatus.OK)
+      .then((response) => {
+        expect(response.body.toString()).toMatch(/<svg.*?svg>/);
       });
   });
 

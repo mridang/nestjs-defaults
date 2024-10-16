@@ -8,6 +8,7 @@ import { CoreAssetsModule } from './services/assets.module';
 import { CoreContinuationModule } from './services/clsstore.module';
 import { SettingsModule } from './services/settings/settings.module';
 import { TimingModule } from './services/timing';
+import { VersionModule } from './services/version/version.module';
 
 @Global()
 @Module({})
@@ -23,6 +24,7 @@ export class DefaultsModule {
         SettingsModule.register(options.configName),
         NodeModule,
         TimingModule,
+        VersionModule,
         CoreContinuationModule,
         CoreInightsModule,
         CoreAssetsModule,
