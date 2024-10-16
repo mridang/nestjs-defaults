@@ -120,23 +120,17 @@ const ErrorPage: FunctionalComponent<{
           name="viewport"
         />
         <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin="1"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+          rel="stylesheet"
+        ></link>
         <style>{`
-          @font-face {
-            font-family: 'Montserrat';
-            font-style: normal;
-            font-weight: 400;
-            src: url("../fonts/montserrat-400.eot");
-            src: local("Montserrat Regular"), local("Montserrat-Regular"), url("../fonts/montserrat-400.eot?#iefix") format("embedded-opentype"), url("../fonts/montserrat-400.woff2") format("woff2"), url("../fonts/montserrat-400.woff") format("woff"), url("../fonts/montserrat-400.ttf") format("truetype"), url("../fonts/montserrat-400.svg#Montserrat") format("svg");
-          }
-
-          @font-face {
-            font-family: 'Montserrat';
-            font-style: normal;
-            font-weight: 700;
-            src: url("../fonts/montserrat-700.eot");
-            src: local("Montserrat Bold"), local("Montserrat-Bold"), url("../fonts/montserrat-700.eot?#iefix") format("embedded-opentype"), url("../fonts/montserrat-700.woff2") format("woff2"), url("../fonts/montserrat-700.woff") format("woff"), url("../fonts/montserrat-700.ttf") format("truetype"), url("../fonts/montserrat-700.svg#Montserrat") format("svg");
-          }
-
           /* CSS reset */
           html, body, div, span, applet, object, iframe,
           h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -190,7 +184,7 @@ const ErrorPage: FunctionalComponent<{
           /* Style */
           html,
           body {
-            font-family: "Montserrat", sans-serif;
+            font-family: Montserrat, sans-serif;
             font-size: 16px;
             line-height: 1.4;
             -webkit-font-smoothing: antialiased;
