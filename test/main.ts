@@ -23,7 +23,7 @@ async function bootstrap() {
     logger: new BetterLogger(new ClsService(new AsyncLocalStorage())),
   });
 
-  configure(nestApp, __dirname);
+  configure(nestApp);
   await nestApp.init();
   await nestApp.listen(3000);
 }
