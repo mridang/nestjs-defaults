@@ -21,6 +21,7 @@ Here are some of the notable features of this library:
 - Configures a robots.txt endpoint that disallows all crawling and indexing
 - Configures the serving of static assets https://docs.nestjs.com/recipes/serve-static
 - Configures a health-check endpoint like Terminus https://docs.nestjs.com/recipes/terminus
+- Exports a mechanism for using Preact for SSR
 
 ## Installation
 
