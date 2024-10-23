@@ -16,7 +16,6 @@ import {
 } from 'class-validator';
 import { Type, Expose } from 'class-transformer';
 import { NelException } from './nel.exception';
-import { InjectSentry } from '../sentry.decorator';
 import { SentryService } from '../sentry.service';
 
 class BodyDto {
@@ -83,7 +82,7 @@ export class ReportDto {
 export class NelController {
   private readonly logger = new Logger(NelController.name);
 
-  constructor(@InjectSentry() private readonly sentryService: SentryService) {
+  constructor(private readonly sentryService: SentryService) {
     //
   }
 

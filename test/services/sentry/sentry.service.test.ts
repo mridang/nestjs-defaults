@@ -3,7 +3,6 @@ import {
   SentryModuleOptions,
   SentryModule,
   SentryService,
-  SENTRY_TOKEN,
 } from '../../../src/services/sentry';
 import { Test, TestingModule } from '@nestjs/testing';
 
@@ -25,7 +24,7 @@ describe('sentry.service tests', () => {
         ],
       }).compile();
 
-      const sentry = mod.get<SentryService>(SENTRY_TOKEN);
+      const sentry = mod.get<SentryService>(SentryService);
       expect(sentry).toBeInstanceOf(SentryService);
       sentry.log('sentry:log');
       expect(sentry.log).toBeInstanceOf(Function);
@@ -42,7 +41,7 @@ describe('sentry.service tests', () => {
         ],
       }).compile();
 
-      const sentry = mod.get<SentryService>(SENTRY_TOKEN);
+      const sentry = mod.get<SentryService>(SentryService);
       expect(sentry).toBeInstanceOf(SentryService);
       sentry.error('sentry:error');
       expect(sentry.error).toBeInstanceOf(Function);
@@ -59,7 +58,7 @@ describe('sentry.service tests', () => {
         ],
       }).compile();
 
-      const sentry = mod.get<SentryService>(SENTRY_TOKEN);
+      const sentry = mod.get<SentryService>(SentryService);
       expect(sentry).toBeInstanceOf(SentryService);
       sentry.verbose('sentry:verbose', 'context:verbose');
       expect(sentry.verbose).toBeInstanceOf(Function);
@@ -76,7 +75,7 @@ describe('sentry.service tests', () => {
         ],
       }).compile();
 
-      const sentry = mod.get<SentryService>(SENTRY_TOKEN);
+      const sentry = mod.get<SentryService>(SentryService);
       expect(sentry).toBeInstanceOf(SentryService);
       //eslint-disable-next-line testing-library/no-debugging-utils
       sentry.debug('sentry:debug', 'context:debug');
@@ -94,7 +93,7 @@ describe('sentry.service tests', () => {
         ],
       }).compile();
 
-      const sentry = mod.get<SentryService>(SENTRY_TOKEN);
+      const sentry = mod.get<SentryService>(SentryService);
       expect(sentry).toBeInstanceOf(SentryService);
       try {
         sentry.warn('sentry:warn', 'context:warn');
@@ -112,7 +111,7 @@ describe('sentry.service tests', () => {
       }).compile();
       await mod.enableShutdownHooks();
 
-      const sentry = mod.get<SentryService>(SENTRY_TOKEN);
+      const sentry = mod.get<SentryService>(SentryService);
       expect(sentry).toBeInstanceOf(SentryService);
       await mod.close();
       // expect(mockCloseSentry).not.toHaveBeenCalled();
@@ -133,7 +132,7 @@ describe('sentry.service tests', () => {
       }).compile();
       await mod.enableShutdownHooks();
 
-      const sentry = mod.get<SentryService>(SENTRY_TOKEN);
+      const sentry = mod.get<SentryService>(SentryService);
       expect(sentry).toBeInstanceOf(SentryService);
       await mod.close();
       // expect(mockCloseSentry).toHaveBeenCalledWith(timeout);
@@ -153,7 +152,7 @@ describe('sentry.service tests', () => {
         ],
       }).compile();
 
-      sentry = mod.get<SentryService>(SENTRY_TOKEN);
+      sentry = mod.get<SentryService>(SentryService);
     });
 
     it('sentry.SentryServiceInstance', () => {

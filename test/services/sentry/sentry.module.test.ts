@@ -5,7 +5,6 @@ import {
   SentryOptionsFactory,
   SentryModule,
   SentryService,
-  SENTRY_TOKEN,
 } from '../../../src/services/sentry';
 
 describe('sentry.module tests', () => {
@@ -34,7 +33,7 @@ describe('sentry.module tests', () => {
         imports: [SentryModule.forRoot(config)],
       }).compile();
 
-      expect(mod.get<SentryService>(SENTRY_TOKEN)).toBeInstanceOf(
+      expect(mod.get<SentryService>(SentryService)).toBeInstanceOf(
         SentryService,
       );
     });
@@ -51,7 +50,7 @@ describe('sentry.module tests', () => {
           ],
         }).compile();
 
-        expect(mod.get<SentryService>(SENTRY_TOKEN)).toBeInstanceOf(
+        expect(mod.get<SentryService>(SentryService)).toBeInstanceOf(
           SentryService,
         );
       });
@@ -68,7 +67,7 @@ describe('sentry.module tests', () => {
         ],
       }).compile();
 
-      expect(mod.get<SentryService>(SENTRY_TOKEN)).toBeInstanceOf(
+      expect(mod.get<SentryService>(SentryService)).toBeInstanceOf(
         SentryService,
       );
     });
@@ -85,7 +84,7 @@ describe('sentry.module tests', () => {
         ],
       }).compile();
 
-      expect(mod.get<SentryService>(SENTRY_TOKEN)).toBeInstanceOf(
+      expect(mod.get<SentryService>(SentryService)).toBeInstanceOf(
         SentryService,
       );
     });

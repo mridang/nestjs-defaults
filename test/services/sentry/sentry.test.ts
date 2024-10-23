@@ -5,7 +5,11 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import { ApolloDriver } from '@nestjs/apollo';
 import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
-import { GraphqlInterceptor, SentryModule } from '../../../src/services/sentry';
+import {
+  GraphqlInterceptor,
+  SentryModule,
+  SentryService,
+} from '../../../src/services/sentry';
 
 @Resolver()
 class ExampleResolver {
@@ -47,8 +51,10 @@ describe('sentry.e2e tests', () => {
         ],
         providers: [
           {
+            inject: [SentryService],
             provide: APP_INTERCEPTOR,
-            useFactory: () => new GraphqlInterceptor(),
+            useFactory: (sentryService: SentryService) =>
+              new GraphqlInterceptor(sentryService),
           },
           ExampleResolver,
         ],
