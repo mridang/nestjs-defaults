@@ -155,13 +155,6 @@ describe('sentry.service tests', () => {
       sentry = mod.get<SentryService>(SentryService);
     });
 
-    it('sentry.SentryServiceInstance', () => {
-      expect(SentryService.SentryServiceInstance).toBeInstanceOf(Function);
-    });
-    it('sentry.instance', () => {
-      expect(sentry.instance).toBeInstanceOf(Function);
-    });
-
     it('sentry.log asBreabcrumb === true', () => {
       try {
         sentry.log('sentry:log', 'context:log', true);

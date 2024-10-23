@@ -15,15 +15,11 @@ export class SentryService
   implements OnApplicationShutdown
 {
   app = '@mridang/nestjs-defaults: ';
-  private static serviceInstance: SentryService;
   constructor(
     @Inject(SENTRY_MODULE_OPTIONS)
-    readonly opts?: SentryModuleOptions,
+    private readonly opts: SentryModuleOptions,
   ) {
     super();
-    if (!(opts && opts.dsn)) {
-      return;
-    }
     const { integrations = [], ...sentryOptions } = opts;
     Sentry.init({
       ...sentryOptions,
@@ -46,13 +42,6 @@ export class SentryService
         ...integrations,
       ],
     });
-  }
-
-  public static SentryServiceInstance(): SentryService {
-    if (!SentryService.serviceInstance) {
-      SentryService.serviceInstance = new SentryService();
-    }
-    return SentryService.serviceInstance;
   }
 
   log(message: string, context?: string, asBreadcrumb?: boolean) {
