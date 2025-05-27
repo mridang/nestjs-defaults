@@ -25,7 +25,6 @@ export class End2EndModule {
     providers?: Provider[];
     controllers?: Type[];
   }) {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.imports = options.imports ?? [];
     this.providers = options.providers ?? [];
     this.controllers = options.controllers ?? [];

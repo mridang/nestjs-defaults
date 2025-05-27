@@ -8,7 +8,6 @@ let GqlExecutionContext: any;
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   ({ GqlExecutionContext } = require('@nestjs/graphql'));
-  // eslint-disable-next-line no-empty
 } catch {
   //
 }

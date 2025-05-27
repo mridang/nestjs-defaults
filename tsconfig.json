@@ -13,7 +13,8 @@
     "typeRoots": ["./node_modules/@types", "./types"],
     "declaration": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "preact"
+    "jsxImportSource": "preact",
+	  "isolatedModules": true
   },
   "include": [
     "src/**/*",

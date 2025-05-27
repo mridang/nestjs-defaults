@@ -7,7 +7,7 @@ import {
 import { ClientOptions, Client } from '@sentry/types';
 import * as Sentry from '@sentry/node';
 import { SENTRY_MODULE_OPTIONS } from './sentry.constants';
-import { SentryModuleOptions } from './sentry.interfaces';
+import type { SentryModuleOptions } from './sentry.interfaces';
 
 @Injectable()
 export class SentryService

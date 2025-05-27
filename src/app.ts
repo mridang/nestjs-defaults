@@ -1,7 +1,6 @@
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { CustomHttpExceptionFilter } from './services/errors/errors.filter';
 import cookieParser from 'cookie-parser';
-// eslint-disable-next-line import/namespace
 import { default as helm } from 'helmet';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';

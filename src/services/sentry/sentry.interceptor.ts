@@ -8,7 +8,7 @@ import {
 import { HttpArgumentsHost, ContextType } from '@nestjs/common/interfaces';
 import { tap } from 'rxjs/operators';
 import { SentryService } from './sentry.service';
-import { SentryInterceptorOptions } from './sentry.interfaces';
+import type { SentryInterceptorOptions } from './sentry.interfaces';
 import { extractRequestData, Scope } from '@sentry/node';
 
 @Injectable()

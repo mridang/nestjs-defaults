@@ -1,4 +1,3 @@
-/* eslint-disable no-dupe-class-members */
 import { Injectable, LoggerService, LogLevel, Optional } from '@nestjs/common';
 import winston, { createLogger, format, transports } from 'winston';
 import { ClsService } from 'nestjs-cls';
