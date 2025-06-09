@@ -25,7 +25,7 @@
 	"files": [
 		"dist"
 	],
-	"license": "ISC",
+	"license": "Apache-2.0",
 	"description": "A set of sane default for the NestJS framework",
 	"private": false,
 	"peerDependencies": {
