@@ -14,16 +14,8 @@
     "declaration": true,
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
-	  "isolatedModules": true
+    "isolatedModules": true
   },
-  "include": [
-    "src/**/*",
-    "types/**/*"
-, "test/main.ts"  ],
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts",
-    "dist",
-    "test"
-  ]
+  "include": ["src/**/*", "types/**/*", "test/main.ts"],
+  "exclude": ["node_modules", "**/*.spec.ts", "dist", "test"]
 }
