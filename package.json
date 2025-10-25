@@ -42,7 +42,7 @@
     "serverless": "^3.0.0"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "repository": {
     "type": "git",
@@ -55,21 +55,21 @@
   },
   "devDependencies": {
     "@jest/globals": "^30.0.3",
-    "@mridang/eslint-defaults": "^1.2.0",
+    "@mridang/eslint-defaults": "^1.4.0",
     "@nestjs/apollo": "^13.1.0",
     "@nestjs/cli": "^11.0.7",
     "@nestjs/testing": "^11.1.2",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^11.0.3",
-    "@semantic-release/npm": "^12.0.1",
-    "@semantic-release/release-notes-generator": "^14.0.3",
+    "@semantic-release/github": "^12.0.0",
+    "@semantic-release/npm": "^13.1.1",
+    "@semantic-release/release-notes-generator": "^14.1.0",
     "@sentry/types": "^8.32.0",
-    "@tsconfig/node20": "latest",
+    "@tsconfig/node22": "^22.0.2",
     "@types/aws-lambda": "^8.10.149",
     "@types/cookie-parser": "^1.4.8",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.15.21",
+    "@types/node": "^22.18.12",
     "@types/supertest": "^6.0.3",
     "@types/ua-parser-js": "^0.7.39",
     "eslint": "^9.27.0",
@@ -78,10 +78,10 @@
     "knip": "^5.58.1",
     "node-mocks-http": "^1.17.2",
     "prettier": "^3.5.3",
-    "semantic-release": "^24.2.5",
+    "semantic-release": "^25.0.1",
     "supertest": "^7.1.1",
     "ts-jest": "^29.4.0",
-    "typescript": "~5.8.3"
+    "typescript": "^5.9.3"
   },
   "publishConfig": {
     "access": "public"
