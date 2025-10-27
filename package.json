@@ -106,5 +106,5 @@
     "winston": "^3.17.0",
     "winston-transport": "^4.9.0"
   },
-  "version": "2.3.0"
+  "version": "2.4.0"
 }
