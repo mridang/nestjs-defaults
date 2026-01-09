@@ -75,6 +75,7 @@
     "eslint": "^9.27.0",
     "graphql": "^16.11.0",
     "jest": "^30.0.3",
+    "jest-junit": "^16.0.0",
     "knip": "^5.58.1",
     "node-mocks-http": "^1.17.2",
     "prettier": "^3.5.3",
