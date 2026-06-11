@@ -1,8 +1,10 @@
 import { expect } from '@jest/globals';
 import { ClsService } from 'nestjs-cls';
-import { Context } from 'aws-lambda';
 import { createRequest, createResponse } from 'node-mocks-http';
-import { RequestIdMiddleware } from '../src/correlation.middleware';
+import {
+  FaasContext,
+  RequestIdMiddleware,
+} from '../src/correlation.middleware';
 
 const mockClsService: Partial<ClsService> = {
   run: jest.fn().mockImplementation((fn: () => void) => fn()),
@@ -20,7 +22,7 @@ describe('correlation.middleware test', () => {
         invokedFunctionArn: 'test-function-arn',
         functionName: 'test-function',
         functionVersion: '1.0',
-      } as Context;
+      } as FaasContext;
     });
   });
 

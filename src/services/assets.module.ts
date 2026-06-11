@@ -8,7 +8,7 @@ import { join } from 'node:path';
  * by `@nestjs/serve-static`, which reads from the local filesystem).
  */
 @Module({})
-export class NoopAssetsModule {}
+class NoopAssetsModule {}
 
 /**
  * Serves files from `<cwd>/public` at `/static`. When `enabled` is false the

@@ -1,10 +1,38 @@
-import { Injectable, NestMiddleware, Optional } from '@nestjs/common';
+import { Inject, Injectable, NestMiddleware, Optional } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
-import { getCurrentInvoke } from '@codegenie/serverless-express';
 import { ClsService } from 'nestjs-cls';
-import { Context } from 'aws-lambda';
 import UAParser from 'ua-parser-js';
 import path from 'node:path';
+
+/**
+ * Injection token for an optional FaaS execution-context provider. Serverless
+ * runtimes can bind a function returning the current invocation's context so
+ * its identifiers populate the `faas.*` log fields — e.g. on AWS Lambda:
+ *
+ * ```ts
+ * import { getCurrentInvoke } from '@codegenie/serverless-express';
+ * { provide: FAAS_CONTEXT, useValue: () => getCurrentInvoke()?.context }
+ * ```
+ *
+ * Runtimes without a FaaS context (e.g. Cloudflare Workers) leave it unbound
+ * and those fields stay empty. The provider is the only place the core would
+ * otherwise need a cloud-provider package, so keeping it injected means neither
+ * AWS nor Workers pulls in deps it does not use.
+ */
+export const FAAS_CONTEXT = Symbol('FAAS_CONTEXT');
+
+/**
+ * Minimal shape of a FaaS execution context — the subset of the AWS Lambda
+ * `Context` used for ECS `faas.*` logging fields, declared locally so the core
+ * depends on no cloud-provider package.
+ */
+export interface FaasContext {
+  functionName?: string;
+  functionVersion?: string;
+  invokedFunctionArn?: string;
+  awsRequestId?: string;
+  logStreamName?: string;
+}
 
 @Injectable()
 export class RequestIdMiddleware implements NestMiddleware {
@@ -14,16 +42,9 @@ export class RequestIdMiddleware implements NestMiddleware {
   constructor(
     private readonly clsService: ClsService,
     @Optional()
-    private readonly currentInvoke: () => Context | undefined = () => {
-      // `getCurrentInvoke` only resolves a real value under AWS Lambda
-      // (serverless-express). Off AWS (e.g. Cloudflare Workers) it is absent or
-      // returns nothing, so guard it and fall back to no FaaS context.
-      try {
-        return getCurrentInvoke?.()?.context as Context | undefined;
-      } catch {
-        return undefined;
-      }
-    },
+    @Inject(FAAS_CONTEXT)
+    private readonly currentInvoke: () => FaasContext | undefined = () =>
+      undefined,
   ) {
     //
   }
@@ -85,7 +106,9 @@ export class RequestIdMiddleware implements NestMiddleware {
           request: {
             body: undefined,
             bytes: req.headers['content-length'],
-            id: req.headers['x-amz-cf-id'],
+            // Edge-assigned request id: `cf-ray` on Cloudflare, `x-amz-cf-id`
+            // on AWS CloudFront. Either gives a correlation id to trace by.
+            id: req.headers['cf-ray'] ?? req.headers['x-amz-cf-id'],
             method: req.method,
             mime_type: req.headers['content-type'],
             referrer: req.headers['referer'],
