@@ -4,7 +4,46 @@ import { ClsService } from 'nestjs-cls';
 import { isLogLevelEnabled } from '@nestjs/common/services/utils';
 import { flatten } from 'safe-flat';
 import os from 'node:os';
+import { Writable } from 'node:stream';
 import * as Transport from 'winston-transport';
+
+/**
+ * `true` when the code is executing inside a Cloudflare Workers isolate.
+ *
+ * Workers expose a `navigator.userAgent` of `'Cloudflare-Workers'`, which is
+ * the documented, stable way to detect the runtime. It is used to choose a
+ * logging transport that does not depend on a writable `process.stdout`.
+ */
+const isCloudflareWorkers =
+  typeof navigator !== 'undefined' &&
+  navigator.userAgent === 'Cloudflare-Workers';
+
+/**
+ * Build a Winston transport that is safe to use on Cloudflare Workers.
+ *
+ * On Workers the `process.stdout` stream provided by `nodejs_compat` has no
+ * working `_write()` implementation, so Winston's built-in
+ * {@link transports.Console} throws `ERR_METHOD_NOT_IMPLEMENTED` the first time
+ * anything is logged. This transport instead writes to a small
+ * {@link Writable} whose `_write()` forwards every formatted line to
+ * `console.log`, which is implemented natively on Workers. The format pipeline
+ * is unchanged, so the emitted lines are identical to the Node transport's.
+ *
+ * @returns A stream transport that emits formatted log lines via `console.log`.
+ */
+function createConsoleTransport(): Transport {
+  const consoleStream = new Writable({
+    // Parameter types are inferred from `WritableOptions.write`, so the encoding
+    // argument keeps its `BufferEncoding` type without naming that global (which
+    // the lint config's `no-undef` rule would otherwise flag).
+    write(chunk, _encoding, next): void {
+      console.log(String(chunk).replace(/\n$/, ''));
+      next();
+    },
+  });
+
+  return new transports.Stream({ stream: consoleStream });
+}
 
 @Injectable()
 export class BetterLogger implements LoggerService {
@@ -34,43 +73,44 @@ export class BetterLogger implements LoggerService {
     } = os,
     @Optional()
     private readonly winstonTransports: Transport[] | Transport = [
-      new transports.Console(),
+      isCloudflareWorkers ? createConsoleTransport() : new transports.Console(),
     ],
   ) {
     this.logger = createLogger({
       level: 'debug',
-      format: envVars.AWS_LAMBDA_FUNCTION_NAME
-        ? format.combine(
-            format((info) => {
-              const ctx: object = this.clsService.get('ctx') || {};
+      format:
+        envVars.AWS_LAMBDA_FUNCTION_NAME || envVars.NODE_ENV === 'production'
+          ? format.combine(
+              format((info) => {
+                const ctx: object = this.clsService.get('ctx') || {};
 
-              const fields = flatten({
-                log: {
-                  level: info.level,
-                  logger: info.context,
-                },
-                message: info.message,
-                ['@timestamp']: new Date(),
-                ...ctx,
-              }) as { [key: string]: unknown };
+                const fields = flatten({
+                  log: {
+                    level: info.level,
+                    logger: info.context,
+                  },
+                  message: info.message,
+                  ['@timestamp']: new Date(),
+                  ...ctx,
+                }) as { [key: string]: unknown };
 
-              delete fields.extras;
-              delete info.extras;
+                delete fields.extras;
+                delete info.extras;
 
-              return {
-                ...info,
-                ...fields,
-              };
-            })(),
-            format.json({ space: 0 }),
-          )
-        : format.combine(
-            format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
-            format.colorize({ all: true }),
-            format.printf(({ timestamp, message, context }) => {
-              return `${timestamp} ${context}: ${message}`;
-            }),
-          ),
+                return {
+                  ...info,
+                  ...fields,
+                };
+              })(),
+              format.json({ space: 0 }),
+            )
+          : format.combine(
+              format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
+              format.colorize({ all: true }),
+              format.printf(({ timestamp, message, context }) => {
+                return `${timestamp} ${context}: ${message}`;
+              }),
+            ),
       defaultMeta: flatten({
         service: {
           environment: envVars.NODE_ENV,

@@ -6,14 +6,72 @@ import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { BetterLogger } from './logger';
 
+/**
+ * An Express-style middleware function `(req, res, next) => void`. Handlers that
+ * omit `next` (e.g. the robots.txt responder) remain assignable to this.
+ */
+type ExpressMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => void;
+
+/**
+ * Minimal shape of an HTTP adapter that can wrap Express-style middleware so it
+ * runs against an Express-shaped request/response. The Cloudflare Workers
+ * adapter (`@mridang/nestjs-platform-cloudflare`) exposes this; the Express
+ * adapter does not, since its native `app.use()` already speaks Express.
+ */
+interface ExpressMiddlewareAdapter {
+  useExpressMiddleware(
+    pathOrMiddleware: string | ExpressMiddleware,
+    middleware?: ExpressMiddleware,
+  ): void;
+}
+
+/**
+ * Detect whether the application's HTTP adapter wraps Express middleware (the
+ * Cloudflare Workers adapter) rather than running it natively (Express).
+ */
+function getExpressMiddlewareAdapter(
+  nestApp: NestExpressApplication,
+): ExpressMiddlewareAdapter | undefined {
+  const adapter = nestApp.getHttpAdapter() as unknown as
+    | Partial<ExpressMiddlewareAdapter>
+    | undefined;
+  return typeof adapter?.useExpressMiddleware === 'function'
+    ? (adapter as ExpressMiddlewareAdapter)
+    : undefined;
+}
+
 export default function configure(nestApp: NestExpressApplication) {
   nestApp.useLogger(nestApp.get(BetterLogger));
   nestApp.useGlobalFilters(new CustomHttpExceptionFilter());
-  nestApp.use('/robots.txt', (_req: Request, res: Response) => {
+
+  // Express middleware (the robots.txt handler, the cold-start header, cookie
+  // parsing and Helmet) must run with an Express-shaped request/response. The
+  // Express adapter provides that through `nestApp.use(...)` directly, but the
+  // Cloudflare Workers adapter runs `use(...)` middleware against native
+  // Fetch-style objects, so Express middleware has to be routed through its
+  // `useExpressMiddleware(...)` compatibility layer instead.
+  const expressAdapter = getExpressMiddlewareAdapter(nestApp);
+  const mountAt = (path: string, mw: ExpressMiddleware) =>
+    expressAdapter
+      ? expressAdapter.useExpressMiddleware(path, mw)
+      : (nestApp.use as (path: string, mw: ExpressMiddleware) => void)(
+          path,
+          mw,
+        );
+  const mount = (mw: ExpressMiddleware) =>
+    expressAdapter
+      ? expressAdapter.useExpressMiddleware(mw)
+      : (nestApp.use as (mw: ExpressMiddleware) => void)(mw);
+
+  mountAt('/robots.txt', (_req: Request, res: Response) => {
     res.type('text/plain');
     res.send('User-agent: *\nDisallow: /');
   });
-  nestApp.use((_req: Request, res: Response, next: NextFunction) => {
+  mount((_req: Request, res: Response, next: NextFunction) => {
     res.setHeader(
       'X-Lambda-Start',
       process.env.LAMBDA_COLD_START === 'warm' ? 'Warm' : 'Cold',
@@ -21,8 +79,8 @@ export default function configure(nestApp: NestExpressApplication) {
     process.env.LAMBDA_COLD_START = 'warm';
     next();
   });
-  nestApp.use(cookieParser());
-  nestApp.use(
+  mount(cookieParser());
+  mount(
     helm({
       contentSecurityPolicy: {
         useDefaults: true,

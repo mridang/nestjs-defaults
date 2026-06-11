@@ -14,8 +14,15 @@ export class RequestIdMiddleware implements NestMiddleware {
   constructor(
     private readonly clsService: ClsService,
     @Optional()
-    private readonly currentInvoke: () => Context = () => {
-      return getCurrentInvoke().context as Context;
+    private readonly currentInvoke: () => Context | undefined = () => {
+      // `getCurrentInvoke` only resolves a real value under AWS Lambda
+      // (serverless-express). Off AWS (e.g. Cloudflare Workers) it is absent or
+      // returns nothing, so guard it and fall back to no FaaS context.
+      try {
+        return getCurrentInvoke?.()?.context as Context | undefined;
+      } catch {
+        return undefined;
+      }
     },
   ) {
     //
@@ -47,7 +54,7 @@ export class RequestIdMiddleware implements NestMiddleware {
           full: `${req.protocol}://${req.hostname}${req.originalUrl}`,
           original: req?.originalUrl,
           path: req.path,
-          port: req.socket.localPort,
+          port: req.socket?.localPort,
           query: req._parsedUrl?.query,
           scheme: req.protocol,
           username: undefined,

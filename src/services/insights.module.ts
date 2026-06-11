@@ -1,33 +1,36 @@
+import { DynamicModule } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SentryModule } from './sentry';
+import { SentryModuleOptions } from './sentry/sentry.interfaces';
 
 /**
- * The `CoreInsightsModule` is an asynchronous configuration for the
- * `SentryModule`, used for integrating Sentry into the application.
+ * Builds the Sentry insights module.
  *
- * It uses `forRootAsync` to set up Sentry based on runtime configuration.
+ * Sentry is enabled only when a `SENTRY_DSN` is configured (and not explicitly
+ * disabled via `SENTRY_ENABLED=false`). A missing DSN no longer throws at boot,
+ * so the module is safe to include on runtimes where Sentry is not configured.
  *
- * - `useFactory`: An async function that receives a `ConfigService` instance
- *   to obtain configuration values and return the Sentry config.
- *   - `dsn`: Data Source Name for Sentry, retrieved from config service.
- *   - `environment`: Current environment (e.g., development, production),
- *     fetched from config service.
- *   - `enabled`: Indicates whether Sentry error tracking is enabled.
- *   - `logLevels`: If debugging is enabled, sets log level to 'debug';
- *     otherwise, it's not specified.
- * - `inject`: Specifies the `ConfigService` to be injected into the factory
- *   function.
+ * - `dsn`: Data Source Name for Sentry, from config (may be undefined).
+ * - `environment`: Current environment, defaulting to `development`.
+ * - `enabled`: True only when a DSN is present and not disabled.
+ * - `logLevels`: `['debug']` when `SENTRY_DEBUG` is set, otherwise undefined.
  */
-export const CoreInightsModule = SentryModule.forRootAsync({
-  useFactory: async (configService: ConfigService) => {
-    return {
-      dsn: configService.getOrThrow('SENTRY_DSN'),
-      environment: configService.getOrThrow('NODE_ENV'),
-      enabled: configService.get<boolean>('SENTRY_ENABLED'),
-      logLevels: configService.get<boolean>('SENTRY_DEBUG')
-        ? ['debug']
-        : undefined,
-    };
-  },
-  inject: [ConfigService],
-});
+export function createInsightsModule(): DynamicModule {
+  return SentryModule.forRootAsync({
+    useFactory: async (configService: ConfigService) => {
+      const dsn = configService.get<string>('SENTRY_DSN');
+      return {
+        // When absent, `enabled` is false so the DSN is never used; the cast
+        // satisfies Sentry's strict template-literal DSN type.
+        dsn: dsn as unknown as SentryModuleOptions['dsn'],
+        environment: configService.get<string>('NODE_ENV') ?? 'development',
+        enabled:
+          !!dsn && configService.get<boolean>('SENTRY_ENABLED') !== false,
+        logLevels: configService.get<boolean>('SENTRY_DEBUG')
+          ? ['debug']
+          : undefined,
+      };
+    },
+    inject: [ConfigService],
+  });
+}

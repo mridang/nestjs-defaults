@@ -1,17 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import {
-  GetSecretValueCommand,
-  GetSecretValueResponse,
-  SecretsManagerClient,
-} from '@aws-sdk/client-secrets-manager';
 
+/**
+ * Loads secrets from AWS Secrets Manager.
+ *
+ * The AWS SDK is imported dynamically and the client is constructed lazily
+ * inside `loadSecrets`, so merely instantiating this service (which Nest does
+ * for every app that imports `SettingsModule`) never touches AWS. This keeps
+ * the package usable on runtimes without the AWS SDK (e.g. Cloudflare Workers),
+ * where `loadSecrets` is simply never called.
+ */
 @Injectable()
 export class SecretsService {
-  private client: SecretsManagerClient = new SecretsManagerClient();
   private decoder = new TextDecoder('utf8');
 
   async loadSecrets(secretName: string): Promise<Record<string, string>> {
-    const data: GetSecretValueResponse = await this.client.send(
+    const { SecretsManagerClient, GetSecretValueCommand } = await import(
+      '@aws-sdk/client-secrets-manager'
+    );
+
+    const client = new SecretsManagerClient();
+    const data = await client.send(
       new GetSecretValueCommand({ SecretId: secretName }),
     );
 
