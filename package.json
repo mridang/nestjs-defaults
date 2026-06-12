@@ -39,7 +39,7 @@
     "@nestjs/platform-express": "^11.0.0",
     "@nestjs/serve-static": "^5.0.0",
     "@sentry/cloudflare": "^10.0.0",
-    "@sentry/node": "^8.0.0"
+    "@sentry/node": "^10.0.0"
   },
   "peerDependenciesMeta": {
     "@aws-sdk/client-secrets-manager": {
@@ -72,7 +72,7 @@
     "@semantic-release/npm": "^13.1.1",
     "@semantic-release/release-notes-generator": "^14.1.0",
     "@sentry/cloudflare": "^10.57.0",
-    "@sentry/node": "^8.55.0",
+    "@sentry/node": "^10.57.0",
     "@tsconfig/node22": "^22.0.2",
     "@types/cookie-parser": "^1.4.8",
     "@types/jest": "^30.0.0",
