@@ -4,7 +4,6 @@ import { ClsService } from 'nestjs-cls';
 import { isLogLevelEnabled } from '@nestjs/common/services/utils';
 import { flatten } from 'safe-flat';
 import os from 'node:os';
-import { Writable } from 'node:stream';
 import * as Transport from 'winston-transport';
 
 /**
@@ -19,31 +18,13 @@ const isCloudflareWorkers =
   navigator.userAgent === 'Cloudflare-Workers';
 
 /**
- * Build a Winston transport that is safe to use on Cloudflare Workers.
- *
- * On Workers the `process.stdout` stream provided by `nodejs_compat` has no
- * working `_write()` implementation, so Winston's built-in
- * {@link transports.Console} throws `ERR_METHOD_NOT_IMPLEMENTED` the first time
- * anything is logged. This transport instead writes to a small
- * {@link Writable} whose `_write()` forwards every formatted line to
- * `console.log`, which is implemented natively on Workers. The format pipeline
- * is unchanged, so the emitted lines are identical to the Node transport's.
- *
- * @returns A stream transport that emits formatted log lines via `console.log`.
+ * Winston's internal symbols for the fully-formatted line and the level. The
+ * format chain stamps the finished string onto `info[MESSAGE]`; these mirror
+ * `triple-beam`'s exports (both are `Symbol.for(...)` globals) without adding a
+ * dependency on it.
  */
-function createConsoleTransport(): Transport {
-  const consoleStream = new Writable({
-    // Parameter types are inferred from `WritableOptions.write`, so the encoding
-    // argument keeps its `BufferEncoding` type without naming that global (which
-    // the lint config's `no-undef` rule would otherwise flag).
-    write(chunk, _encoding, next): void {
-      console.log(String(chunk).replace(/\n$/, ''));
-      next();
-    },
-  });
-
-  return new transports.Stream({ stream: consoleStream });
-}
+const MESSAGE = Symbol.for('message');
+const LEVEL = Symbol.for('level');
 
 @Injectable()
 export class BetterLogger implements LoggerService {
@@ -73,94 +54,153 @@ export class BetterLogger implements LoggerService {
     } = os,
     @Optional()
     private readonly winstonTransports: Transport[] | Transport = [
-      isCloudflareWorkers ? createConsoleTransport() : new transports.Console(),
+      new transports.Console(),
     ],
+    @Optional()
+    private readonly onCloudflareWorkers: boolean = isCloudflareWorkers,
   ) {
-    this.logger = createLogger({
-      level: 'debug',
-      format:
-        envVars.AWS_LAMBDA_FUNCTION_NAME || envVars.NODE_ENV === 'production'
-          ? format.combine(
-              format((info) => {
-                const ctx: object = this.clsService.get('ctx') || {};
+    const logFormat =
+      envVars.AWS_LAMBDA_FUNCTION_NAME || envVars.NODE_ENV === 'production'
+        ? format.combine(
+            format((info) => {
+              const ctx: object = this.clsService.get('ctx') || {};
 
-                const fields = flatten({
-                  log: {
-                    level: info.level,
-                    logger: info.context,
-                  },
-                  message: info.message,
-                  ['@timestamp']: new Date(),
-                  ...ctx,
-                }) as { [key: string]: unknown };
+              const fields = flatten({
+                log: {
+                  level: info.level,
+                  logger: info.context,
+                },
+                message: info.message,
+                ['@timestamp']: new Date(),
+                ...ctx,
+              }) as { [key: string]: unknown };
 
-                delete fields.extras;
-                delete info.extras;
+              delete fields.extras;
+              delete info.extras;
 
-                return {
-                  ...info,
-                  ...fields,
-                };
-              })(),
-              format.json({ space: 0 }),
-            )
-          : format.combine(
-              format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
-              format.colorize({ all: true }),
-              format.printf(({ timestamp, message, context }) => {
-                return `${timestamp} ${context}: ${message}`;
-              }),
-            ),
-      defaultMeta: flatten({
-        service: {
-          environment: envVars.NODE_ENV,
-          id: envVars.SERVICE_ID,
-          name: envVars.SERVICE_NAME || envVars.AWS_LAMBDA_FUNCTION_NAME,
-          type: envVars.SERVICE_TYPE,
-          version:
-            envVars.SERVICE_VERSION || envVars.AWS_LAMBDA_FUNCTION_VERSION,
-        },
+              return {
+                ...info,
+                ...fields,
+              };
+            })(),
+            format.json({ space: 0 }),
+          )
+        : format.combine(
+            format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
+            format.colorize({ all: true }),
+            format.printf(({ timestamp, message, context }) => {
+              return `${timestamp} ${context}: ${message}`;
+            }),
+          );
+
+    const defaultMeta = flatten({
+      service: {
+        environment: envVars.NODE_ENV,
+        id: envVars.SERVICE_ID,
+        name: envVars.SERVICE_NAME || envVars.AWS_LAMBDA_FUNCTION_NAME,
+        type: envVars.SERVICE_TYPE,
+        version: envVars.SERVICE_VERSION || envVars.AWS_LAMBDA_FUNCTION_VERSION,
+      },
+      os: {
+        architecture: nodeOs.arch(),
+        hostname: nodeOs.hostname(),
+        id: nodeOs.hostname(),
+        ip: undefined,
+        name: nodeOs.hostname(),
         os: {
-          architecture: nodeOs.arch(),
-          hostname: nodeOs.hostname(),
-          id: nodeOs.hostname(),
-          ip: undefined,
-          name: nodeOs.hostname(),
-          os: {
-            family: nodeOs.type(),
-            full: `${nodeOs.type()} ${nodeOs.release()}`,
-            kernel: nodeOs.release(),
-            name: nodeOs.type(),
-            platform: nodeOs.platform(),
-            type: nodeOs.type().toLowerCase(),
-            version: nodeOs.version(),
-          },
-          type: 'unknown',
+          family: nodeOs.type(),
+          full: `${nodeOs.type()} ${nodeOs.release()}`,
+          kernel: nodeOs.release(),
+          name: nodeOs.type(),
+          platform: nodeOs.platform(),
+          type: nodeOs.type().toLowerCase(),
+          version: nodeOs.version(),
         },
-        cloud: {
-          account: {
-            id: process.env.CLOUD_ACCOUNT_ID,
-            name: process.env.CLOUD_ACCOUNT_NAME,
-          },
-          availability_zone: process.env.CLOUD_AVAILABILITY_ZONE,
-          instance: {
-            id: process.env.CLOUD_INSTANCE_ID,
-            name: process.env.CLOUD_INSTANCE_NAME,
-          },
-          machine: {
-            type: process.env.CLOUD_MACHINE_TYPE,
-          },
-          provider: process.env.CLOUD_PROVIDER,
-          region: process.env.CLOUD_REGION || process.env.AWS_REGION,
-          service: {
-            name: process.env.CLOUD_SERVICE_NAME,
-          },
-          origin: undefined,
-          target: undefined,
+        type: 'unknown',
+      },
+      cloud: {
+        account: {
+          id: process.env.CLOUD_ACCOUNT_ID,
+          name: process.env.CLOUD_ACCOUNT_NAME,
         },
-      }),
-      transports: this.winstonTransports,
+        availability_zone: process.env.CLOUD_AVAILABILITY_ZONE,
+        instance: {
+          id: process.env.CLOUD_INSTANCE_ID,
+          name: process.env.CLOUD_INSTANCE_NAME,
+        },
+        machine: {
+          type: process.env.CLOUD_MACHINE_TYPE,
+        },
+        provider: process.env.CLOUD_PROVIDER,
+        region: process.env.CLOUD_REGION || process.env.AWS_REGION,
+        service: {
+          name: process.env.CLOUD_SERVICE_NAME,
+        },
+        origin: undefined,
+        target: undefined,
+      },
     });
+
+    if (this.onCloudflareWorkers) {
+      this.logger = this.createWorkersLogger(logFormat, defaultMeta);
+    } else {
+      this.logger = createLogger({
+        level: 'debug',
+        format: logFormat,
+        defaultMeta,
+        transports: this.winstonTransports,
+      });
+    }
+  }
+
+  /**
+   * Build a logger for Cloudflare Workers that does not touch `node:stream`.
+   *
+   * The Workers runtime polyfills `node:stream` with a build whose internal
+   * debug logging cannot be turned off, so Winston's stream-based delivery
+   * prints a burst of `STREAM: ...` plumbing lines around every entry. This
+   * runs the same Winston format chain in memory — the exact call Winston
+   * makes internally, `format.transform(info, options)` — and emits the
+   * finished line through `console.log`, the native Workers logging primitive.
+   * No stream is created, so no debug plumbing is printed.
+   *
+   * @param logFormat The combined Winston format applied to each entry.
+   * @param defaultMeta The base metadata merged into every entry.
+   * @returns An object exposing the `winston.Logger` level methods used here.
+   */
+  private createWorkersLogger(
+    logFormat: ReturnType<typeof format.combine>,
+    defaultMeta: object,
+  ): winston.Logger {
+    const emit = (level: string, message: string, meta: object): void => {
+      const info = {
+        level,
+        [LEVEL]: level,
+        message,
+        ...defaultMeta,
+        ...meta,
+      } as Parameters<typeof logFormat.transform>[0];
+
+      const formatted = logFormat.transform(info, logFormat.options);
+      if (formatted) {
+        console.log((formatted as Record<symbol, string>)[MESSAGE]);
+      }
+    };
+
+    const channel = (level: string) => {
+      return (message: string, meta: object = {}): void => {
+        emit(level, message, meta);
+      };
+    };
+
+    return {
+      info: channel('info'),
+      error: channel('error'),
+      warn: channel('warn'),
+      debug: channel('debug'),
+      verbose: channel('verbose'),
+      crit: channel('crit'),
+    } as unknown as winston.Logger;
   }
 
   /**

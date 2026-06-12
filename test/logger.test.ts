@@ -160,4 +160,64 @@ describe('default.logger tests', () => {
       foo: 'bar',
     });
   });
+
+  test('emits formatted JSON via console.log on Workers, with no stream noise', () => {
+    const lines: string[] = [];
+    const spy = jest
+      .spyOn(console, 'log')
+      .mockImplementation((line: string) => {
+        lines.push(String(line));
+      });
+
+    try {
+      const betterLogger = new BetterLogger(
+        {
+          get: jest.fn().mockReturnValue({ requestId: 'test-request-id' }),
+        } as unknown as ClsService,
+        ['log', 'error', 'warn', 'debug', 'verbose', 'fatal'],
+        {
+          SERVICE_NAME: 'foo',
+          NODE_ENV: 'production',
+        },
+        {
+          arch() {
+            return 'arm64';
+          },
+          hostname() {
+            return 'host';
+          },
+          type() {
+            return 'Linux';
+          },
+          release() {
+            return '1.0';
+          },
+          platform() {
+            return 'linux';
+          },
+          version() {
+            return '1.0';
+          },
+        },
+        undefined,
+        // Force the Cloudflare Workers code path.
+        true,
+      );
+
+      betterLogger.log('Workers log message');
+
+      // Exactly one console.log, no node:stream debug plumbing leaked in.
+      expect(lines).toHaveLength(1);
+      expect(lines.join('\n')).not.toContain('STREAM:');
+      expect(JSON.parse(lines[0])).toMatchObject({
+        message: 'Workers log message',
+        level: 'info',
+        context: 'Unknown',
+        requestId: 'test-request-id',
+        'service.name': 'foo',
+      });
+    } finally {
+      spy.mockRestore();
+    }
+  });
 });

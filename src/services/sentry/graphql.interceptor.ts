@@ -39,8 +39,12 @@ export class GraphqlInterceptor extends SentryInterceptor {
     if (gqlContext.getContext().req) {
       const data = extractRequestData(gqlContext.getContext().req, {});
       scope.setExtra('req', data.request);
-      if (data.extra) scope.setExtras(data.extra);
-      if (data.user) scope.setUser(data.user);
+      if (data.extra) {
+        scope.setExtras(data.extra);
+      }
+      if (data.user) {
+        scope.setUser(data.user);
+      }
     }
 
     this.client.instance().captureException(exception);

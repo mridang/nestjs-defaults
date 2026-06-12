@@ -59,8 +59,12 @@ export class SentryInterceptor implements NestInterceptor {
 
     scope.setExtra('req', data.request);
 
-    if (data.extra) scope.setExtras(data.extra);
-    if (data.user) scope.setUser(data.user);
+    if (data.extra) {
+      scope.setExtras(data.extra);
+    }
+    if (data.user) {
+      scope.setUser(data.user);
+    }
 
     const exceptionId = this.client.instance().captureException(exception);
     http.getResponse().setHeader('X-Exception-Id', exceptionId);
