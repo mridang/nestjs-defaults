@@ -1,8 +1,18 @@
 export { default as configure } from './app';
 export { ServerTiming } from './services/timing';
 export { DefaultsModule } from './defaults.module';
-export { FAAS_CONTEXT, type FaasContext } from './correlation.middleware';
-export { BetterLogger } from './logger';
+export {
+  BetterLogger,
+  LOG_STRATEGY,
+  selectStrategy,
+  StructuredConsoleSink,
+  StdoutJsonSink,
+  PrettyConsoleSink,
+  type LogStrategy,
+  type LogSink,
+  type HostInfo,
+  type SelectStrategyOptions,
+} from './logging';
 export { FetchImpl, CryptoImpl } from './services/core';
 export * from './services/sentry';
 export type { Request, Response, NextFunction } from 'express';

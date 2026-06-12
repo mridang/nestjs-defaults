@@ -4,7 +4,7 @@ import cookieParser from 'cookie-parser';
 import { default as helm } from 'helmet';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
-import { BetterLogger } from './logger';
+import { BetterLogger } from './logging';
 
 /**
  * An Express-style middleware function `(req, res, next) => void`. Handlers that

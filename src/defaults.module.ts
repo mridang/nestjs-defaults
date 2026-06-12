@@ -1,7 +1,7 @@
 import { Global, MiddlewareConsumer, Module } from '@nestjs/common';
 import { DefaultController } from './app.controller';
 import { NodeModule } from './services/core/core.module';
-import { BetterLogger } from './logger';
+import { BetterLogger } from './logging';
 import { RequestIdMiddleware } from './correlation.middleware';
 import { createInsightsModule } from './services/insights.module';
 import { createAssetsModule } from './services/assets.module';
