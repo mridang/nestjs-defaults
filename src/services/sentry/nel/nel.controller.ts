@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Body,
+  Inject,
   Logger,
   ParseArrayPipe,
   HttpCode,
@@ -16,7 +17,8 @@ import {
 } from 'class-validator';
 import { Type, Expose } from 'class-transformer';
 import { NelException } from './nel.exception';
-import { SentryService } from '../sentry.service';
+import { SENTRY_REPORTER } from '../reporter';
+import type { SentryReporter } from '../reporter';
 
 class BodyDto {
   @Expose({ name: 'elapsed_time' })
@@ -82,9 +84,12 @@ export class ReportDto {
 export class NelController {
   private readonly logger = new Logger(NelController.name);
 
-  constructor(private readonly sentryService: SentryService) {
-    //
-  }
+  /**
+   * @param reporter The reporter client reports are forwarded to.
+   */
+  constructor(
+    @Inject(SENTRY_REPORTER) private readonly reporter: SentryReporter,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -95,7 +100,7 @@ export class NelController {
       `Received a NEL request containing ${reports.length} reports`,
     );
     reports.forEach((report) => {
-      this.sentryService.instance().captureException(new NelException(report));
+      this.reporter.captureException(new NelException(report));
     });
   }
 }

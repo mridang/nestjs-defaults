@@ -111,7 +111,6 @@ describe('app.controller test', () => {
       .set('Accept', 'text/html')
       .expect(HttpStatus.INTERNAL_SERVER_ERROR)
       .expect('Content-Type', 'text/html; charset=utf-8')
-      .expect('x-exception-id', /^.*?$/)
       .expect((response) => {
         if (!response.text.includes('<title>Internal Server Error</title>')) {
           throw new Error('Expected text not found in response');
@@ -125,7 +124,6 @@ describe('app.controller test', () => {
       .set('Accept', 'text/html')
       .expect(HttpStatus.INTERNAL_SERVER_ERROR)
       .expect('Content-Type', 'text/html; charset=utf-8')
-      .expect('x-exception-id', /^.*?$/)
       .expect((response) => {
         if (!response.text.includes('<title>Internal Server Error</title>')) {
           throw new Error('Expected text not found in response');

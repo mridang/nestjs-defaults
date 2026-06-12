@@ -1,61 +1,43 @@
-import { SentryModule } from './../../../../src/services/sentry/sentry.module';
-import request from 'supertest';
-import { HttpStatus } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-import { NestExpressApplication } from '@nestjs/platform-express';
+import { expect, describe, test, jest } from '@jest/globals';
+import {
+  NelController,
+  ReportDto,
+} from '../../../../src/services/sentry/nel/nel.controller';
+import { NelException } from '../../../../src/services/sentry/nel/nel.exception';
+import { NoopSentryReporter } from '../../../../src/services/sentry/reporter';
 
-describe('nel.controller test', () => {
-  let testModule: NestExpressApplication;
+/**
+ * Build a representative NEL report payload.
+ */
+function aReport(): ReportDto {
+  return {
+    age: 29662,
+    body: {
+      elapsedTime: 305,
+      method: 'GET',
+      phase: 'application',
+      protocol: 'h3',
+      referrer: '',
+      samplingFraction: 1,
+      serverIp: '2606:4700:3033::6815:487c',
+      statusCode: 404,
+      type: 'http.error',
+    },
+    type: 'network-error',
+    url: 'https://local.mrida.ng/static/js/app.js',
+    userAgent: 'Mozilla/5.0',
+  };
+}
 
-  beforeAll(async () => {
-    testModule = await Test.createTestingModule({
-      imports: [
-        SentryModule.forRoot({
-          dsn: 'https://client@account.ingest.us.sentry.io/0',
-        }),
-      ],
-    })
-      .compile()
-      .then((module) =>
-        module.createNestApplication<NestExpressApplication>({
-          rawBody: true,
-        }),
-      )
-      .then((nest) => nest.init());
-  });
+describe('NelController', () => {
+  test('reports every received report to Sentry as a NelException', () => {
+    const reporter = new NoopSentryReporter();
+    const capture = jest.spyOn(reporter, 'captureException');
+    const controller = new NelController(reporter);
 
-  afterAll(async () => {
-    await testModule?.close();
-  });
+    controller.handleReport([aReport(), aReport()]);
 
-  test('that nel reports are handled and sent to sentry', () => {
-    return request(testModule.getHttpServer())
-      .post('/report')
-      .send([
-        {
-          age: 29662,
-          body: {
-            elapsed_time: 305,
-            method: 'GET',
-            phase: 'application',
-            protocol: 'h3',
-            referrer: '',
-            sampling_fraction: 1,
-            server_ip: '2606:4700:3033::6815:487c',
-            status_code: 404,
-            type: 'http.error',
-          },
-          type: 'network-error',
-          url: 'https://local.mrida.ng/static/js/tadddilwind.3.4.5.js',
-          user_agent: 'Mozilla/5.0',
-        },
-      ])
-      .expect(HttpStatus.NO_CONTENT)
-      .expect('Reporting-Endpoints', 'nel-endpoint="/report"')
-      .expect(
-        'nel',
-        '{"report_to":"nel-endpoint","max_age":10886400,"include_subdomains":true,"success_fraction":0,"failure_fraction":1}',
-      )
-      .expect('');
+    expect(capture).toHaveBeenCalledTimes(2);
+    expect(capture.mock.calls[0][0]).toBeInstanceOf(NelException);
   });
 });

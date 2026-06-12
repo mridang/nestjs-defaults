@@ -26,8 +26,8 @@ export interface DefaultsOptions {
   assets?: boolean;
   /**
    * Enable Sentry insights. Default true. Sentry self-disables when no
-   * `SENTRY_DSN` is configured, so this only needs to be set false to keep the
-   * `@sentry/node` SDK out of the runtime entirely (e.g. on Cloudflare Workers).
+   * `SENTRY_DSN` is configured; the SDK for the active runtime is loaded only
+   * when a DSN is present, so this rarely needs to be set false.
    */
   sentry?: boolean;
 }
