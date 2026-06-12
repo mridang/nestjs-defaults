@@ -10,6 +10,33 @@ describe('EnvSecretsSource', () => {
   });
 });
 
+describe('AwsSecretsManagerSource.load', () => {
+  test('requests the secret by id and returns the parsed bundle', async () => {
+    const sent: Array<{ SecretId: string }> = [];
+
+    class FakeCommand {
+      constructor(public readonly input: { SecretId: string }) {}
+    }
+
+    class FakeClient {
+      send(command: object): Promise<{ SecretString: string }> {
+        sent.push((command as FakeCommand).input);
+        return Promise.resolve({ SecretString: '{"TOKEN":"abc"}' });
+      }
+    }
+
+    const loadSdk = async () => ({
+      SecretsManagerClient: FakeClient,
+      GetSecretValueCommand: FakeCommand,
+    });
+
+    const source = new AwsSecretsManagerSource('my-secret', loadSdk);
+
+    await expect(source.load()).resolves.toEqual({ TOKEN: 'abc' });
+    expect(sent).toEqual([{ SecretId: 'my-secret' }]);
+  });
+});
+
 describe('AwsSecretsManagerSource.parse', () => {
   test('parses a JSON SecretString into a key/value map', () => {
     expect(

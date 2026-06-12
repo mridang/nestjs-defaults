@@ -31,17 +31,46 @@ export class EnvSecretsSource implements SecretsSource {
 }
 
 /**
- * Secrets source that loads a JSON secret bundle from AWS Secrets Manager.
+ * A Secrets Manager response carrying the secret payload.
+ */
+interface SecretValue {
+  SecretString?: string;
+  SecretBinary?: Uint8Array;
+}
+
+/**
+ * The subset of `@aws-sdk/client-secrets-manager` this source relies on.
+ */
+interface SecretsManagerSdk {
+  SecretsManagerClient: new () => {
+    send(command: object): Promise<SecretValue>;
+  };
+  GetSecretValueCommand: new (input: { SecretId: string }) => object;
+}
+
+/**
+ * Load the AWS Secrets Manager SDK lazily, so the package only requires
+ * `@aws-sdk/client-secrets-manager` when this source is actually used.
  *
- * The AWS SDK is imported dynamically inside {@link AwsSecretsManagerSource.load},
- * so the package only requires `@aws-sdk/client-secrets-manager` when this
- * source is actually used.
+ * @returns The Secrets Manager SDK.
+ */
+const loadSecretsManager = (): Promise<SecretsManagerSdk> =>
+  import(
+    '@aws-sdk/client-secrets-manager'
+  ) as unknown as Promise<SecretsManagerSdk>;
+
+/**
+ * Secrets source that loads a JSON secret bundle from AWS Secrets Manager.
  */
 export class AwsSecretsManagerSource implements SecretsSource {
   /**
    * @param secretId The identifier of the secret to load.
+   * @param loadSdk Loader for the AWS SDK; defaults to a lazy dynamic import.
    */
-  constructor(private readonly secretId: string) {}
+  constructor(
+    private readonly secretId: string,
+    private readonly loadSdk: () => Promise<SecretsManagerSdk> = loadSecretsManager,
+  ) {}
 
   /**
    * Fetch and parse the secret bundle from AWS Secrets Manager.
@@ -49,9 +78,8 @@ export class AwsSecretsManagerSource implements SecretsSource {
    * @returns The secret key/value pairs.
    */
   async load(): Promise<Record<string, string>> {
-    const { SecretsManagerClient, GetSecretValueCommand } = await import(
-      '@aws-sdk/client-secrets-manager'
-    );
+    const { SecretsManagerClient, GetSecretValueCommand } =
+      await this.loadSdk();
 
     const client = new SecretsManagerClient();
     const data = await client.send(
@@ -67,10 +95,7 @@ export class AwsSecretsManagerSource implements SecretsSource {
    * @param data The Secrets Manager response.
    * @returns The parsed secret key/value pairs.
    */
-  static parse(data: {
-    SecretString?: string;
-    SecretBinary?: Uint8Array;
-  }): Record<string, string> {
+  static parse(data: SecretValue): Record<string, string> {
     if (data.SecretString) {
       return JSON.parse(data.SecretString);
     }
