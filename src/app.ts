@@ -71,14 +71,6 @@ export default function configure(nestApp: NestExpressApplication) {
     res.type('text/plain');
     res.send('User-agent: *\nDisallow: /');
   });
-  mount((_req: Request, res: Response, next: NextFunction) => {
-    res.setHeader(
-      'X-Lambda-Start',
-      process.env.LAMBDA_COLD_START === 'warm' ? 'Warm' : 'Cold',
-    );
-    process.env.LAMBDA_COLD_START = 'warm';
-    next();
-  });
   mount(cookieParser());
   mount(
     helm({

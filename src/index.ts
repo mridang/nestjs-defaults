@@ -13,6 +13,11 @@ export {
   type HostInfo,
   type SelectStrategyOptions,
 } from './logging';
+export {
+  EnvSecretsSource,
+  AwsSecretsManagerSource,
+  type SecretsSource,
+} from './services/settings/source';
 export { FetchImpl, CryptoImpl } from './services/core';
 export * from './services/sentry';
 export type { Request, Response, NextFunction } from 'express';

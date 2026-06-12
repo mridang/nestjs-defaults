@@ -6,20 +6,16 @@ import { RequestIdMiddleware } from './correlation.middleware';
 import { createInsightsModule } from './services/insights.module';
 import { createAssetsModule } from './services/assets.module';
 import { CoreContinuationModule } from './services/clsstore.module';
-import {
-  SettingsModule,
-  SecretsSource,
-} from './services/settings/settings.module';
+import { SettingsModule } from './services/settings/settings.module';
+import { EnvSecretsSource, SecretsSource } from './services/settings/source';
 import { TimingModule } from './services/timing';
 import { VersionModule } from './services/version/version.module';
 
 export interface DefaultsOptions {
-  /** Name of the secret/config bundle. */
-  configName: string;
   /**
-   * Where config comes from. `'aws'` (default) keeps the historical AWS Secrets
-   * Manager behaviour. Pass the Worker `env` object (or any function) to run
-   * off AWS. See {@link SecretsSource}.
+   * Where configuration secrets come from. Defaults to {@link EnvSecretsSource}
+   * (the process environment), which is correct for Cloudflare Workers and
+   * local development; pass an {@link AwsSecretsManagerSource} to load from AWS.
    */
   secrets?: SecretsSource;
   /**
@@ -45,7 +41,7 @@ export class DefaultsModule {
 
   static register(options: DefaultsOptions) {
     const imports = [
-      SettingsModule.register(options.configName, options.secrets ?? 'aws'),
+      SettingsModule.register(options.secrets ?? new EnvSecretsSource()),
       NodeModule,
       TimingModule,
       VersionModule,
@@ -62,9 +58,7 @@ export class DefaultsModule {
       imports,
       controllers: [DefaultController],
       providers: [BetterLogger],
-      exports: [
-        //
-      ],
+      exports: [],
     };
   }
 }
