@@ -75,9 +75,7 @@ export class BetterLogger implements LoggerService {
     private readonly strategy: LogStrategy = selectStrategy(),
     @Optional()
     private logLevels: LogLevel[] = [...DEFAULT_LEVELS],
-  ) {
-    //
-  }
+  ) {}
 
   /**
    * Write a log-level (`info`) entry.
