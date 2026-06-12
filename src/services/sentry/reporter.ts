@@ -147,6 +147,36 @@ export interface SentryReporterOptions {
 }
 
 /**
+ * A Node Sentry SDK: the capture surface plus an initialiser.
+ */
+type NodeSentryApi = SentryApi & {
+  init(options: { dsn: string; environment?: string }): void;
+};
+
+/**
+ * Loaders for the optional Sentry SDKs.
+ *
+ * The defaults import the real packages lazily; tests inject fakes so both
+ * runtime branches are exercised without loading a runtime-specific SDK (the
+ * Cloudflare package cannot be imported outside a Workers isolate).
+ */
+export interface SentrySdkLoaders {
+  /** Load `@sentry/cloudflare`. */
+  loadCloudflare(): Promise<SentryApi>;
+  /** Load `@sentry/node`. */
+  loadNode(): Promise<NodeSentryApi>;
+}
+
+/**
+ * The default loaders, importing the real SDKs only when invoked.
+ */
+const DEFAULT_LOADERS: SentrySdkLoaders = {
+  loadCloudflare: () =>
+    import('@sentry/cloudflare') as unknown as Promise<SentryApi>,
+  loadNode: () => import('@sentry/node') as unknown as Promise<NodeSentryApi>,
+};
+
+/**
  * Build the reporter for the active runtime.
  *
  * With no DSN, or when disabled, this returns a {@link NoopSentryReporter}. On
@@ -156,10 +186,12 @@ export interface SentryReporterOptions {
  * reporter is actually needed.
  *
  * @param options The reporter configuration.
+ * @param loaders The SDK loaders; defaults to importing the real packages.
  * @returns The reporter for the active runtime.
  */
 export async function createSentryReporter(
   options: SentryReporterOptions,
+  loaders: SentrySdkLoaders = DEFAULT_LOADERS,
 ): Promise<SentryReporter> {
   if (!options.dsn || options.enabled === false) {
     return new NoopSentryReporter();
@@ -167,13 +199,10 @@ export async function createSentryReporter(
 
   const onWorkers = options.onCloudflareWorkers ?? ON_CLOUDFLARE_WORKERS;
   if (onWorkers) {
-    const sentry = (await import('@sentry/cloudflare')) as unknown as SentryApi;
-    return new SdkSentryReporter(sentry);
+    return new SdkSentryReporter(await loaders.loadCloudflare());
   }
 
-  const sentry = (await import('@sentry/node')) as unknown as SentryApi & {
-    init(options: { dsn: string; environment?: string }): void;
-  };
+  const sentry = await loaders.loadNode();
   sentry.init({ dsn: options.dsn, environment: options.environment });
   return new SdkSentryReporter(sentry);
 }
