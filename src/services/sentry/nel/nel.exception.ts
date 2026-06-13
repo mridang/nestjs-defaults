@@ -1,4 +1,4 @@
-import { ReportDto } from './nel.controller';
+import { ReportDto } from './nel.controller.js';
 
 export class NelException extends Error {
   constructor(public readonly report: ReportDto) {

@@ -5,7 +5,7 @@ import {
   LogLevel,
   Optional,
 } from '@nestjs/common';
-import { isLogLevelEnabled } from '@nestjs/common/services/utils';
+import { isLogLevelEnabled } from '@nestjs/common/services/utils/is-log-level-enabled.util.js';
 import { ClsService } from 'nestjs-cls';
 import type { Ecs } from '@elastic/ecs';
 import {
@@ -13,7 +13,7 @@ import {
   LOG_STRATEGY,
   selectStrategy,
   type LogStrategy,
-} from './strategy';
+} from './strategy.js';
 
 /**
  * The `error` portion of an ECS document.

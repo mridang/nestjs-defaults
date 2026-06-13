@@ -1,6 +1,6 @@
 import { Module, Global } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { EnvSecretsSource, SecretsSource } from './source';
+import { EnvSecretsSource, SecretsSource } from './source.js';
 
 /**
  * Wrap resolved secrets in a config-load factory carrying a stable token.
