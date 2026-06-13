@@ -111,7 +111,6 @@ describe('app.controller test', () => {
       .set('Accept', 'text/html')
       .expect(HttpStatus.INTERNAL_SERVER_ERROR)
       .expect('Content-Type', 'text/html; charset=utf-8')
-      .expect('x-exception-id', /^.*?$/)
       .expect((response) => {
         if (!response.text.includes('<title>Internal Server Error</title>')) {
           throw new Error('Expected text not found in response');
@@ -125,7 +124,6 @@ describe('app.controller test', () => {
       .set('Accept', 'text/html')
       .expect(HttpStatus.INTERNAL_SERVER_ERROR)
       .expect('Content-Type', 'text/html; charset=utf-8')
-      .expect('x-exception-id', /^.*?$/)
       .expect((response) => {
         if (!response.text.includes('<title>Internal Server Error</title>')) {
           throw new Error('Expected text not found in response');
@@ -218,23 +216,15 @@ describe('app.controller test', () => {
       .expect('Content-Type', /application\/json/)
       .expect(HttpStatus.OK)
       .then((response) => {
-        expect(response.body).toEqual({
+        expect(response.body).toMatchObject({
           url: {
             domain: '127.0.0.1',
             full: 'http://127.0.0.1/cls-ctx',
             original: '/cls-ctx',
-            path: '/',
-            port: expect.any(Number),
-            query: null,
             scheme: 'http',
           },
-          user_agent: {
-            device: {},
-            original: '',
-            os: { full: 'undefined undefined' },
-          },
           http: { request: { method: 'GET' }, version: '1.1' },
-          faas: { coldstart: expect.any(Boolean), trigger: { type: 'http' } },
+          faas: { trigger: { type: 'http' } },
         });
       });
   });

@@ -1,92 +1,54 @@
+import { expect, describe, test } from '@jest/globals';
+import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
-import { Module } from '@nestjs/common';
+import { SentryModule } from '../../../src/services/sentry/sentry.module';
 import {
-  SentryModuleOptions,
-  SentryOptionsFactory,
-  SentryModule,
-  SentryService,
-} from '../../../src/services/sentry';
+  NoopSentryReporter,
+  SENTRY_REPORTER,
+  SentryReporter,
+} from '../../../src/services/sentry/reporter';
+import { NelController } from '../../../src/services/sentry/nel/nel.controller';
 
-describe('sentry.module tests', () => {
-  let config: SentryModuleOptions = {
-    dsn: 'https://45740e3ae4864e77a01ad61a47ea3b7e@o115888.ingest.sentry.io/25956308132022',
-    environment: 'development',
-  };
+/**
+ * Compile {@link SentryModule} with the given configuration values exposed
+ * through a global {@link ConfigModule}.
+ */
+async function compile(config: Record<string, unknown>) {
+  return Test.createTestingModule({
+    imports: [
+      ConfigModule.forRoot({
+        isGlobal: true,
+        ignoreEnvFile: true,
+        load: [() => config],
+      }),
+      SentryModule.forRoot(),
+    ],
+  }).compile();
+}
 
-  class TestService implements SentryOptionsFactory {
-    createSentryModuleOptions(): SentryModuleOptions {
-      return config;
-    }
-  }
+describe('SentryModule', () => {
+  test('provides a no-op reporter when no DSN is configured', async () => {
+    const moduleRef = await compile({});
 
-  @Module({
-    exports: [TestService],
-    providers: [TestService],
-  })
-  class TestModule {
-    //
-  }
+    const reporter = moduleRef.get<SentryReporter>(SENTRY_REPORTER);
 
-  describe('forRoot', () => {
-    it('should provide the sentry client', async () => {
-      const mod = await Test.createTestingModule({
-        imports: [SentryModule.forRoot(config)],
-      }).compile();
-
-      expect(mod.get<SentryService>(SentryService)).toBeInstanceOf(
-        SentryService,
-      );
-    });
+    expect(reporter).toBeInstanceOf(NoopSentryReporter);
   });
 
-  describe('forRootAsync', () => {
-    describe('when the `useFactory` option is used', () => {
-      it('should provide sentry client', async () => {
-        const mod = await Test.createTestingModule({
-          imports: [
-            SentryModule.forRootAsync({
-              useFactory: () => config,
-            }),
-          ],
-        }).compile();
+  test('registers the NEL controller', async () => {
+    const moduleRef = await compile({});
 
-        expect(mod.get<SentryService>(SentryService)).toBeInstanceOf(
-          SentryService,
-        );
-      });
-    });
+    expect(moduleRef.get(NelController)).toBeInstanceOf(NelController);
   });
 
-  describe('when the `useClass` option is used', () => {
-    it('should provide the sentry client', async () => {
-      const mod = await Test.createTestingModule({
-        imports: [
-          SentryModule.forRootAsync({
-            useClass: TestService,
-          }),
-        ],
-      }).compile();
-
-      expect(mod.get<SentryService>(SentryService)).toBeInstanceOf(
-        SentryService,
-      );
+  test('honours SENTRY_ENABLED=false even when a DSN is present', async () => {
+    const moduleRef = await compile({
+      SENTRY_DSN: 'https://client@account.ingest.sentry.io/1',
+      SENTRY_ENABLED: false,
     });
-  });
 
-  describe('when the `useExisting` option is used', () => {
-    it('should provide the stripe client', async () => {
-      const mod = await Test.createTestingModule({
-        imports: [
-          SentryModule.forRootAsync({
-            imports: [TestModule],
-            useExisting: TestService,
-          }),
-        ],
-      }).compile();
-
-      expect(mod.get<SentryService>(SentryService)).toBeInstanceOf(
-        SentryService,
-      );
-    });
+    expect(moduleRef.get<SentryReporter>(SENTRY_REPORTER)).toBeInstanceOf(
+      NoopSentryReporter,
+    );
   });
 });

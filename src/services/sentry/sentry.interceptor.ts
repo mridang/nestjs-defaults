@@ -2,77 +2,62 @@ import {
   CallHandler,
   ExecutionContext,
   HttpException,
+  HttpStatus,
+  Inject,
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { HttpArgumentsHost, ContextType } from '@nestjs/common/interfaces';
+import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { SentryService } from './sentry.service';
-import type { SentryInterceptorOptions } from './sentry.interfaces';
-import { extractRequestData, Scope } from '@sentry/node';
+import { SENTRY_REPORTER } from './reporter';
+import type { SentryReporter } from './reporter';
 
+/**
+ * Reports server-side failures to Sentry as requests flow through.
+ *
+ * Client errors (HTTP 4xx) are expected and left unreported; everything else —
+ * non-HTTP errors and HTTP 5xx — is forwarded to the {@link SentryReporter}.
+ * Request context is attached by the runtime SDK itself (`@sentry/node`'s HTTP
+ * integration, or `withSentry` on Cloudflare Workers).
+ */
 @Injectable()
 export class SentryInterceptor implements NestInterceptor {
+  /**
+   * @param reporter The reporter errors are forwarded to.
+   */
   constructor(
-    protected readonly client: SentryService,
-    private readonly options?: SentryInterceptorOptions,
-  ) {
-    //
-  }
+    @Inject(SENTRY_REPORTER) private readonly reporter: SentryReporter,
+  ) {}
 
-  intercept(context: ExecutionContext, next: CallHandler) {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     return next.handle().pipe(
       tap({
-        next: () => {},
-        error: (exception: HttpException) => {
-          if (this.shouldReport(exception)) {
-            this.client.instance().withScope((scope) => {
-              return this.captureException(context, scope, exception);
-            });
+        error: (error: unknown): void => {
+          if (!SentryInterceptor.shouldReport(error)) {
+            return;
+          }
+          const eventId = this.reporter.captureException(error);
+          if (eventId !== undefined && context.getType() === 'http') {
+            context
+              .switchToHttp()
+              .getResponse<{ setHeader(name: string, value: string): void }>()
+              .setHeader('X-Exception-Id', eventId);
           }
         },
       }),
     );
   }
 
-  protected captureException(
-    context: ExecutionContext,
-    scope: Scope,
-    exception: HttpException,
-  ) {
-    switch (context.getType<ContextType>()) {
-      case 'http':
-        return this.captureHttpException(
-          scope,
-          context.switchToHttp(),
-          exception,
-        );
+  /**
+   * Decide whether an error warrants reporting.
+   *
+   * @param error The error thrown downstream.
+   * @returns True for non-HTTP errors and HTTP 5xx responses.
+   */
+  private static shouldReport(error: unknown): boolean {
+    if (error instanceof HttpException) {
+      return error.getStatus() >= HttpStatus.INTERNAL_SERVER_ERROR;
     }
-  }
-
-  private captureHttpException(
-    scope: Scope,
-    http: HttpArgumentsHost,
-    exception: HttpException,
-  ) {
-    const data = extractRequestData(http.getRequest(), this.options);
-
-    scope.setExtra('req', data.request);
-
-    if (data.extra) scope.setExtras(data.extra);
-    if (data.user) scope.setUser(data.user);
-
-    const exceptionId = this.client.instance().captureException(exception);
-    http.getResponse().setHeader('X-Exception-Id', exceptionId);
-  }
-
-  private shouldReport(exception: HttpException) {
-    return (
-      !this.options?.filters ||
-      !this.options.filters.some(
-        ({ type, filter }) =>
-          exception instanceof type && (!filter || filter(exception)),
-      )
-    );
+    return true;
   }
 }

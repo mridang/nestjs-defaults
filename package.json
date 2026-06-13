@@ -30,7 +30,6 @@
   "private": false,
   "peerDependencies": {
     "@aws-sdk/client-secrets-manager": "^3.654.0",
-    "@codegenie/serverless-express": "^4.15.0",
     "@nestjs/cache-manager": "^3.0.0",
     "@nestjs/common": "^11.1.2",
     "@nestjs/config": "^4.0.0",
@@ -39,7 +38,19 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
     "@nestjs/serve-static": "^5.0.0",
-    "serverless": "^3.0.0"
+    "@sentry/cloudflare": "^10.0.0",
+    "@sentry/node": "^10.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@aws-sdk/client-secrets-manager": {
+      "optional": true
+    },
+    "@sentry/cloudflare": {
+      "optional": true
+    },
+    "@sentry/node": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=22.0.0"
@@ -50,13 +61,9 @@
   },
   "homepage": "https://github.com/mridang/nestjs-defaults",
   "bugs": "https://github.com/mridang/nestjs-defaults/issues",
-  "optionalDependencies": {
-    "@nestjs/graphql": "^13.1.0"
-  },
   "devDependencies": {
     "@jest/globals": "^30.0.3",
     "@mridang/eslint-defaults": "^1.4.0",
-    "@nestjs/apollo": "^13.1.0",
     "@nestjs/cli": "^11.0.7",
     "@nestjs/testing": "^11.1.2",
     "@semantic-release/commit-analyzer": "^13.0.1",
@@ -64,20 +71,18 @@
     "@semantic-release/github": "^12.0.0",
     "@semantic-release/npm": "^13.1.1",
     "@semantic-release/release-notes-generator": "^14.1.0",
-    "@sentry/types": "^8.32.0",
+    "@sentry/cloudflare": "^10.57.0",
+    "@sentry/node": "^10.57.0",
     "@tsconfig/node22": "^22.0.2",
-    "@types/aws-lambda": "^8.10.149",
     "@types/cookie-parser": "^1.4.8",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.18.12",
     "@types/supertest": "^6.0.3",
     "@types/ua-parser-js": "^0.7.39",
     "eslint": "^9.27.0",
-    "graphql": "^16.11.0",
     "jest": "^30.0.3",
     "jest-junit": "^16.0.0",
     "knip": "^5.58.1",
-    "node-mocks-http": "^1.17.2",
     "prettier": "^3.5.3",
     "semantic-release": "^25.0.1",
     "supertest": "^7.1.1",
@@ -88,8 +93,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@sentry/node": "^8.32.0",
-    "aws-lambda": "^1.0.7",
+    "@elastic/ecs": "^9.4.0",
     "badge-maker": "^4.1.0",
     "body-parser": "^2.2.0",
     "class-transformer": "^0.5.1",
@@ -102,10 +106,7 @@
     "preact": "^10.26.7",
     "preact-render-to-string": "^6.5.13",
     "rxjs": "^7.8.2",
-    "safe-flat": "^2.1.0",
-    "ua-parser-js": "^1.0.39",
-    "winston": "^3.17.0",
-    "winston-transport": "^4.9.0"
+    "ua-parser-js": "^1.0.39"
   },
   "version": "2.4.0"
 }

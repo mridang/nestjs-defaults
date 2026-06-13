@@ -1,8 +1,11 @@
-A set of opinionated defaults for the the NestJS framework.
+A set of opinionated defaults for the NestJS framework.
 
 > [!NOTE]
-> This plugin has only been is designed for use with the Express tranport. It
-> also assumes that you are using Sentry and deploying this to AWS.
+> This library targets the Express transport on Node and Cloudflare Workers
+> (via [`@mridang/nestjs-platform-cloudflare`](https://github.com/mridang/nestjs-platform-cloudflare)).
+> Sentry and AWS Secrets Manager are optional: Sentry self-disables when no
+> `SENTRY_DSN` is configured, and secrets are read from the environment unless
+> you opt into another source.
 
 Here are some of the notable features of this library:
 
@@ -13,8 +16,8 @@ Here are some of the notable features of this library:
 - Configures the cookie-parsing middleware to make it easier to read and write cookies https://docs.nestjs.com/techniques/cookies
 - Enables CORS support https://docs.nestjs.com/security/cors
 - Enables network error logging so that client-side errors can be tracked https://web.dev/articles/network-error-logging
-- Wires up Sentry so that all exceptions are reported to Sentry
-  https://docs.sentry.io/platforms/javascript/guides/node/
+- Reports exceptions to Sentry when a `SENTRY_DSN` is configured, using the SDK for the active runtime
+  https://docs.sentry.io/
 - Configures the logger to write log messages using the Elastic Common Schema
   https://www.elastic.co/guide/en/ecs/current/index.html
 - Configures a exception handler that shows pretty error pages for all 4/5xx errors
@@ -33,16 +36,16 @@ npm install --save-dev @mridang/nestjs-defaults
 
 ## Usage
 
-Wiring this library comprises of two parts - configuring the NestJS application
-and configuring the Express transport.
-
-To correctly leverage this library, you must use both.
+Wiring this library comprises two parts — configuring the NestJS application and
+configuring the transport. To correctly leverage this library, you must use
+both.
 
 ### Importing the exported module
 
 The library exposes a module that should be imported in the root module.
-Importing that module will configure all the necessary defaults. The module
-requires that you specify the name of an AWS Secrets Manager configuration.
+Importing it configures all the necessary defaults. With no options it reads
+configuration from the environment, which is correct for Cloudflare Workers and
+local development.
 
 ```
 import { Global, Module } from '@nestjs/common';
@@ -50,31 +53,50 @@ import { DefaultsModule } from '@mridang/nestjs-defaults';
 
 @Global()
 @Module({
-  imports: [
-    DefaultsModule.register({
-      configName: 'shush',
-    }),
-  ],
+  imports: [DefaultsModule.register({})],
 })
-export class AppModule {
-  //
-}
+export class AppModule {}
 ```
 
-### Configuring the NestJS application
+`register` accepts a few options:
 
-The library also provides a `configure` convenience method that can be used for
-setting up the transport e.g. the Handlebars templating engine, support for
-parsing cookies, validation, etc.
+- `secrets` — where configuration secrets come from. Defaults to the process
+  environment. To load a JSON bundle from AWS Secrets Manager, pass an
+  `AwsSecretsManagerSource` (the `@aws-sdk/client-secrets-manager` peer is then
+  required and loaded lazily):
+
+  ```
+  import {
+    DefaultsModule,
+    AwsSecretsManagerSource,
+  } from '@mridang/nestjs-defaults';
+
+  DefaultsModule.register({
+    secrets: new AwsSecretsManagerSource('my-secret-id'),
+  });
+  ```
+
+- `assets` — serve `public/` at `/static`. Defaults to `true`; set `false` on
+  runtimes without a local filesystem (e.g. Cloudflare Workers, where the
+  Workers `assets` binding serves static files instead).
+- `sentry` — enable Sentry insights. Defaults to `true`; Sentry self-disables
+  when no `SENTRY_DSN` is configured.
+
+### Configuring the application
+
+The library also provides a `configure` convenience function that sets up the
+transport — the Handlebars templating engine, cookie parsing, validation, the
+request-context middleware, the exception filter, and so on.
+
+On Node with the Express transport:
 
 ```
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ClsService } from 'nestjs-cls';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import compression from 'compression';
 import { BetterLogger, configure } from '@mridang/nestjs-defaults';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const nestApp = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -82,14 +104,69 @@ async function bootstrap() {
     logger: new BetterLogger(new ClsService(new AsyncLocalStorage())),
   });
 
-  configure(nestApp, __dirname);
-  nestApp.use(compression());
+  configure(nestApp);
   await nestApp.init();
   await nestApp.listen(3000);
 }
 
 bootstrap();
 ```
+
+On Cloudflare Workers, boot through the fetch-native adapter and call
+`configure` after `init` (see
+[`@mridang/nestjs-platform-cloudflare`](https://github.com/mridang/nestjs-platform-cloudflare)
+for the full worker entry):
+
+```
+import { NestFactory } from '@nestjs/core';
+import { configure } from '@mridang/nestjs-defaults';
+import { CloudflareAdapter } from '@mridang/nestjs-platform-cloudflare';
+import { AppModule } from './app.module';
+
+const adapter = new CloudflareAdapter();
+const app = await NestFactory.create(AppModule, adapter, {
+  rawBody: true,
+  logger: false,
+});
+await app.init();
+configure(app);
+
+export default { fetch: (request) => adapter.handle(request) };
+```
+
+`BetterLogger` selects its output strategy per runtime — structured objects to
+`console` on Workers, JSON lines to stdout in Node production, and a readable
+line otherwise — so no runtime-specific wiring is needed.
+
+## Upgrading to 3.0
+
+Version 3 decouples the library from AWS and adds Cloudflare Workers support.
+The changes below are breaking.
+
+- **`DefaultsModule.register` no longer takes `configName`.** Secrets now come
+  from a `SecretsSource` (the environment by default). To keep loading from AWS
+  Secrets Manager, pass a source explicitly:
+
+  ```
+  // before
+  DefaultsModule.register({ configName: 'my-secret-id' });
+  // after
+  DefaultsModule.register({
+    secrets: new AwsSecretsManagerSource('my-secret-id'),
+  });
+  ```
+
+- **The Sentry module API changed.** `SentryModule.forRoot(options)` and
+  `forRootAsync(...)` are gone; the module is wired automatically and reads
+  `SENTRY_DSN` from configuration. The `SentryService` logger, the GraphQL
+  interceptor, and the `SentryModuleOptions`/`SENTRY_TOKEN` exports were
+  removed. Inject the `SENTRY_REPORTER` token (a `SentryReporter`) to report
+  errors manually.
+- **The Sentry SDKs are now optional peer dependencies.** Install `@sentry/node`
+  on Node or `@sentry/cloudflare` on Workers; neither is pulled in transitively.
+- **The logger no longer uses winston.** `BetterLogger` emits Elastic Common
+  Schema documents through a per-runtime sink. The constructor is unchanged, but
+  the output transport is not configurable the way it was.
 
 ## Contributing
 
