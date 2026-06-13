@@ -138,6 +138,36 @@ export default { fetch: (request) => adapter.handle(request) };
 `console` on Workers, JSON lines to stdout in Node production, and a readable
 line otherwise — so no runtime-specific wiring is needed.
 
+## Upgrading to 3.0
+
+Version 3 decouples the library from AWS and adds Cloudflare Workers support.
+The changes below are breaking.
+
+- **`DefaultsModule.register` no longer takes `configName`.** Secrets now come
+  from a `SecretsSource` (the environment by default). To keep loading from AWS
+  Secrets Manager, pass a source explicitly:
+
+  ```
+  // before
+  DefaultsModule.register({ configName: 'my-secret-id' });
+  // after
+  DefaultsModule.register({
+    secrets: new AwsSecretsManagerSource('my-secret-id'),
+  });
+  ```
+
+- **The Sentry module API changed.** `SentryModule.forRoot(options)` and
+  `forRootAsync(...)` are gone; the module is wired automatically and reads
+  `SENTRY_DSN` from configuration. The `SentryService` logger, the GraphQL
+  interceptor, and the `SentryModuleOptions`/`SENTRY_TOKEN` exports were
+  removed. Inject the `SENTRY_REPORTER` token (a `SentryReporter`) to report
+  errors manually.
+- **The Sentry SDKs are now optional peer dependencies.** Install `@sentry/node`
+  on Node or `@sentry/cloudflare` on Workers; neither is pulled in transitively.
+- **The logger no longer uses winston.** `BetterLogger` emits Elastic Common
+  Schema documents through a per-runtime sink. The constructor is unchanged, but
+  the output transport is not configurable the way it was.
+
 ## Contributing
 
 If you have suggestions for how this library could be improved, or
