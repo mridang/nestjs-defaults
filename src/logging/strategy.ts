@@ -5,7 +5,7 @@ import {
   PrettyConsoleSink,
   StdoutJsonSink,
   StructuredConsoleSink,
-} from './sink';
+} from './sink.js';
 
 /**
  * Injection token used to override the auto-selected {@link LogStrategy}.

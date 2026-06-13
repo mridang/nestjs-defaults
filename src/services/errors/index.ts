@@ -1,1 +1,1 @@
-export { CustomHttpExceptionFilter } from './errors.filter';
+export { CustomHttpExceptionFilter } from './errors.filter.js';

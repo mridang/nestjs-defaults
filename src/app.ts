@@ -1,10 +1,10 @@
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { CustomHttpExceptionFilter } from './services/errors/errors.filter';
+import { CustomHttpExceptionFilter } from './services/errors/errors.filter.js';
 import cookieParser from 'cookie-parser';
 import { default as helm } from 'helmet';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
-import { BetterLogger } from './logging';
+import { BetterLogger } from './logging/index.js';
 
 /**
  * An Express-style middleware function `(req, res, next) => void`. Handlers that

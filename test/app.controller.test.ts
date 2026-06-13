@@ -12,7 +12,7 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { IsEmail, IsNotEmpty } from 'class-validator';
 import { ClsService } from 'nestjs-cls';
 

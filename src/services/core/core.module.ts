@@ -1,5 +1,5 @@
 import { Module, Global } from '@nestjs/common';
-import { CryptoImpl, FetchImpl } from './types';
+import { CryptoImpl, FetchImpl } from './types.js';
 
 @Global()
 @Module({
