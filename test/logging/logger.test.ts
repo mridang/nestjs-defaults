@@ -1,4 +1,5 @@
 import { expect, jest, describe, test, beforeEach } from '@jest/globals';
+import { LogLevel } from '@nestjs/common';
 import type { Ecs } from '@elastic/ecs';
 import { ClsService } from 'nestjs-cls';
 import { BetterLogger } from '../../src/logging/logger';
@@ -52,22 +53,20 @@ describe('BetterLogger', () => {
 
   test('maps every NestJS level onto its ECS log.level', () => {
     const logger = new BetterLogger(makeCls(undefined), strategy);
+    const levels: ReadonlyArray<[LogLevel, string]> = [
+      ['log', 'info'],
+      ['error', 'error'],
+      ['warn', 'warn'],
+      ['debug', 'debug'],
+      ['verbose', 'trace'],
+      ['fatal', 'fatal'],
+    ];
 
-    logger.log('a');
-    logger.error('b');
-    logger.warn('c');
-    logger.debug('d');
-    logger.verbose('e');
-    logger.fatal('f');
+    levels.forEach(([method]) => logger[method]('message'));
 
-    expect(sink.entries.map((entry) => entry.log?.level)).toEqual([
-      'info',
-      'error',
-      'warn',
-      'debug',
-      'trace',
-      'fatal',
-    ]);
+    expect(sink.entries.map((entry) => entry.log?.level)).toEqual(
+      levels.map(([, ecsLevel]) => ecsLevel),
+    );
   });
 
   test('defaults the logger context when none is supplied', () => {
@@ -119,7 +118,7 @@ describe('BetterLogger', () => {
   test('does not emit when the level is disabled', () => {
     const logger = new BetterLogger(makeCls(undefined), strategy, ['error']);
 
-    logger.debug('should be dropped');
+    logger.verbose('should be dropped');
     logger.error('should pass');
 
     expect(sink.entries).toHaveLength(1);
