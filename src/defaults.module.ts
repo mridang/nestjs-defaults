@@ -1,15 +1,15 @@
 import { Global, MiddlewareConsumer, Module } from '@nestjs/common';
-import { DefaultController } from './app.controller';
-import { NodeModule } from './services/core/core.module';
-import { BetterLogger } from './logging';
-import { RequestIdMiddleware } from './correlation.middleware';
-import { createInsightsModule } from './services/insights.module';
-import { createAssetsModule } from './services/assets.module';
-import { CoreContinuationModule } from './services/clsstore.module';
-import { SettingsModule } from './services/settings/settings.module';
-import { EnvSecretsSource, SecretsSource } from './services/settings/source';
-import { TimingModule } from './services/timing';
-import { VersionModule } from './services/version/version.module';
+import { DefaultController } from './app.controller.js';
+import { NodeModule } from './services/core/core.module.js';
+import { BetterLogger } from './logging/index.js';
+import { RequestIdMiddleware } from './correlation.middleware.js';
+import { createInsightsModule } from './services/insights.module.js';
+import { createAssetsModule } from './services/assets.module.js';
+import { CoreContinuationModule } from './services/clsstore.module.js';
+import { SettingsModule } from './services/settings/settings.module.js';
+import { EnvSecretsSource, SecretsSource } from './services/settings/source.js';
+import { TimingModule } from './services/timing/index.js';
+import { VersionModule } from './services/version/version.module.js';
 
 export interface DefaultsOptions {
   /**

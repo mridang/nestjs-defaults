@@ -1,6 +1,6 @@
-export { default as configure } from './app';
-export { ServerTiming } from './services/timing';
-export { DefaultsModule, type DefaultsOptions } from './defaults.module';
+export { default as configure } from './app.js';
+export { ServerTiming } from './services/timing/index.js';
+export { DefaultsModule, type DefaultsOptions } from './defaults.module.js';
 export {
   BetterLogger,
   LOG_STRATEGY,
@@ -12,14 +12,14 @@ export {
   type LogSink,
   type HostInfo,
   type SelectStrategyOptions,
-} from './logging';
+} from './logging/index.js';
 export {
   EnvSecretsSource,
   AwsSecretsManagerSource,
   type SecretsSource,
-} from './services/settings/source';
-export { FetchImpl, CryptoImpl } from './services/core';
-export * from './services/sentry';
+} from './services/settings/source.js';
+export { FetchImpl, CryptoImpl } from './services/core/index.js';
+export * from './services/sentry/index.js';
 export type { Request, Response, NextFunction } from 'express';
 export * from 'preact';
 export { render } from 'preact-render-to-string';

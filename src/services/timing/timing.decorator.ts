@@ -1,4 +1,4 @@
-import { getAsyncLocalStorage } from './timing.interceptor';
+import { getAsyncLocalStorage } from './timing.interceptor.js';
 
 export function ServerTiming(key: string, description?: string) {
   return function (

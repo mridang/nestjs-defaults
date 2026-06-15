@@ -11,10 +11,10 @@ import {
   createSentryReporter,
   SENTRY_REPORTER,
   SentryReporter,
-} from './reporter';
-import { SentryInterceptor } from './sentry.interceptor';
-import { NelController } from './nel/nel.controller';
-import { NelMiddleware } from './nel/nel.middleware';
+} from './reporter.js';
+import { SentryInterceptor } from './sentry.interceptor.js';
+import { NelController } from './nel/nel.controller.js';
+import { NelMiddleware } from './nel/nel.middleware.js';
 
 /**
  * Wires error reporting into the application.

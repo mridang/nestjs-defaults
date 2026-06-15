@@ -6,10 +6,10 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { HttpArgumentsHost } from '@nestjs/common/interfaces';
+import { HttpArgumentsHost } from '@nestjs/common/interfaces/index.js';
 import { Response } from 'express';
-import { isObject } from '@nestjs/common/utils/shared.utils';
-import showError from './error';
+import { isObject } from '@nestjs/common/utils/shared.utils.js';
+import showError from './error.js';
 
 @Catch()
 export class CustomHttpExceptionFilter implements ExceptionFilter {

@@ -16,9 +16,9 @@ import {
   IsOptional,
 } from 'class-validator';
 import { Type, Expose } from 'class-transformer';
-import { NelException } from './nel.exception';
-import { SENTRY_REPORTER } from '../reporter';
-import type { SentryReporter } from '../reporter';
+import { NelException } from './nel.exception.js';
+import { SENTRY_REPORTER } from '../reporter.js';
+import type { SentryReporter } from '../reporter.js';
 
 class BodyDto {
   @Expose({ name: 'elapsed_time' })

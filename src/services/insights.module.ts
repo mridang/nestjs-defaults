@@ -1,5 +1,5 @@
 import { DynamicModule } from '@nestjs/common';
-import { SentryModule } from './sentry';
+import { SentryModule } from './sentry/index.js';
 
 /**
  * Build the Sentry insights module.

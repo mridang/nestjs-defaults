@@ -1,1 +1,1 @@
-export { FetchImpl, CryptoImpl } from './types';
+export { FetchImpl, CryptoImpl } from './types.js';

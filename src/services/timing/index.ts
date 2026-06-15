@@ -1,2 +1,2 @@
-export { ServerTiming } from './timing.decorator';
-export { TimingModule } from './timing.module';
+export { ServerTiming } from './timing.decorator.js';
+export { TimingModule } from './timing.module.js';

@@ -1,5 +1,5 @@
 import { Module, Global } from '@nestjs/common';
-import { TimingInterceptor } from './timing.interceptor';
+import { TimingInterceptor } from './timing.interceptor.js';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Global()

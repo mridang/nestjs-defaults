@@ -9,8 +9,8 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { SENTRY_REPORTER } from './reporter';
-import type { SentryReporter } from './reporter';
+import { SENTRY_REPORTER } from './reporter.js';
+import type { SentryReporter } from './reporter.js';
 
 /**
  * Reports server-side failures to Sentry as requests flow through.
