@@ -1,4 +1,7 @@
 export default {
   ignore: ['knip.config.ts'],
-  ignoreDependencies: [/^@semantic-release\//],
+  ignoreDependencies: [
+    /^@semantic-release\//,
+    '@aws-sdk/client-secrets-manager',
+  ],
 };
