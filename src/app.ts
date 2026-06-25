@@ -77,12 +77,7 @@ export default function configure(nestApp: NestExpressApplication) {
       contentSecurityPolicy: {
         useDefaults: true,
         directives: {
-          'script-src': [
-            "'self'",
-            "'unsafe-inline'",
-            'js.pusher.com',
-            "'unsafe-eval'",
-          ],
+          'script-src': ["'self'", 'js.pusher.com'],
           'connect-src': [
             "'self'",
             '*.pusher.com',
@@ -94,7 +89,7 @@ export default function configure(nestApp: NestExpressApplication) {
           'style-src': ["'self'", "'unsafe-inline'", 'fonts.googleapis.com'],
           'img-src': ["'self'", 'data:', 'avatars.githubusercontent.com'],
           'font-src': ["'self'", 'fonts.gstatic.com'],
-          'form-action': ['*'],
+          'form-action': ["'self'"],
         },
       },
     }),
