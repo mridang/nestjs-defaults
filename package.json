@@ -83,7 +83,7 @@
     "@types/ua-parser-js": "^0.7.39",
     "eslint": "^9.39.4",
     "jest": "^30.0.3",
-    "jest-junit": "^16.0.0",
+    "jest-junit": "^17.0.0",
     "knip": "^6.17.1",
     "prettier": "^3.5.3",
     "semantic-release": "^25.0.1",
