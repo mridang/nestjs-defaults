@@ -10,6 +10,9 @@ import { SettingsModule } from './services/settings/settings.module.js';
 import { EnvSecretsSource, SecretsSource } from './services/settings/source.js';
 import { TimingModule } from './services/timing/index.js';
 import { VersionModule } from './services/version/version.module.js';
+import { CspReportsController } from './services/csp/csp.controller.js';
+import { EdgeCacheInterceptor } from './services/edge/edge-cache.interceptor.js';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 export interface DefaultsOptions {
   /**
@@ -30,6 +33,12 @@ export interface DefaultsOptions {
    * when a DSN is present, so this rarely needs to be set false.
    */
   sentry?: boolean;
+  /**
+   * Paths (exact, no query) whose anonymous GET responses are kept in the
+   * Workers Cache API, keyed by release. Default none. Requests carrying a
+   * cookie or authorization header are never cached.
+   */
+  cachedPaths?: readonly string[];
 }
 
 @Global()
@@ -56,8 +65,18 @@ export class DefaultsModule {
     return {
       module: DefaultsModule,
       imports,
-      controllers: [DefaultController],
-      providers: [BetterLogger],
+      controllers: [DefaultController, CspReportsController],
+      providers: [
+        BetterLogger,
+        ...(options.cachedPaths?.length
+          ? [
+              {
+                provide: APP_INTERCEPTOR,
+                useValue: new EdgeCacheInterceptor(options.cachedPaths),
+              },
+            ]
+          : []),
+      ],
       exports: [],
     };
   }

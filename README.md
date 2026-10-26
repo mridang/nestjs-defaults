@@ -15,7 +15,9 @@ Here are some of the notable features of this library:
 - Configures the handlebars templating engine https://docs.nestjs.com/techniques/mvc
 - Configures the cookie-parsing middleware to make it easier to read and write cookies https://docs.nestjs.com/techniques/cookies
 - Enables CORS support https://docs.nestjs.com/security/cors
-- Enables network error logging so that client-side errors can be tracked https://web.dev/articles/network-error-logging
+- Sets a strict set of security headers (HSTS with preload, `frame-ancestors 'none'`, a `Permissions-Policy`, `same-site` resource policy) and reports Content Security Policy violations to the application log at `POST /csp/reports`.
+- Rate-limits each client address through a Cloudflare Workers Rate Limiting binding (`RL_SITE`, declare it with `[[ratelimits]]` in `wrangler.toml`, e.g. `limit = 300`, `period = 60`). It is on by default, fails open when the binding is absent, and never counts `/hook` (webhook deliveries arrive in bursts). Tune it with `configure(app, { rateLimit: { binding, exempt } })` or switch it off with `rateLimit: false`.
+- Optionally serves anonymous GETs of listed paths from the Workers Cache API: `DefaultsModule.register({ cachedPaths: ['/'] })`. Requests with a cookie, authorization header or query string are never cached, and copies are keyed by release (`CF_VERSION_METADATA` binding).
 - Reports exceptions to Sentry when a `SENTRY_DSN` is configured, using the SDK for the active runtime
   https://docs.sentry.io/
 - Configures the logger to write log messages using the Elastic Common Schema

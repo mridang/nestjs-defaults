@@ -23,3 +23,4 @@ export * from './services/sentry/index.js';
 export type { Request, Response, NextFunction } from 'express';
 export * from 'preact';
 export { render } from 'preact-render-to-string';
+export { type ConfigureOptions } from './app.js';

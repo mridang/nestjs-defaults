@@ -152,11 +152,57 @@ describe('app.controller test', () => {
       .expect('x-frame-options', /.+?/);
   });
 
-  test('that the application returns the nel-report headers', async () => {
+  test('that the application returns the hardened security headers', async () => {
     await request(testModule.app.getHttpServer())
       .get('/health')
-      .expect(HttpStatus.NO_CONTENT)
-      .expect('nel', /.*nel-endpoint.*/);
+      .expect(
+        'strict-transport-security',
+        'max-age=63072000; includeSubDomains; preload',
+      )
+      .expect('referrer-policy', 'strict-origin-when-cross-origin')
+      .expect('x-frame-options', 'DENY')
+      .expect('cross-origin-resource-policy', 'same-site')
+      .expect('cross-origin-opener-policy', 'same-origin')
+      .expect('origin-agent-cluster', '?1')
+      .expect(
+        'permissions-policy',
+        'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
+      )
+      .expect('reporting-endpoints', 'csp-endpoint="/csp/reports"')
+      .expect('content-security-policy', /frame-ancestors 'none';?/)
+      .expect('content-security-policy', /report-uri \/csp\/reports/)
+      .expect('content-security-policy', /report-to csp-endpoint/);
+  });
+
+  test('that the application no longer sets network error logging headers', async () => {
+    const response = await request(testModule.app.getHttpServer()).get(
+      '/health',
+    );
+
+    expect(response.headers['nel']).toBeUndefined();
+  });
+
+  test('that csp reports are accepted and answered with 204', async () => {
+    await request(testModule.app.getHttpServer())
+      .post('/csp/reports')
+      .set('Content-Type', 'application/csp-report')
+      .send(
+        JSON.stringify({
+          'csp-report': {
+            'blocked-uri': 'inline',
+            'document-uri': 'https://a.test/x?y=1',
+          },
+        }),
+      )
+      .expect(HttpStatus.NO_CONTENT);
+  });
+
+  test('that oversized csp reports are refused', async () => {
+    await request(testModule.app.getHttpServer())
+      .post('/csp/reports')
+      .set('Content-Type', 'application/reports+json')
+      .send('[' + '0,'.repeat(20000) + '0]')
+      .expect(HttpStatus.PAYLOAD_TOO_LARGE);
   });
 
   test('that the application returns the cross-origin headers', async () => {

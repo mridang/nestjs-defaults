@@ -7,7 +7,6 @@ import {
   SENTRY_REPORTER,
   SentryReporter,
 } from '../../../src/services/sentry/reporter';
-import { NelController } from '../../../src/services/sentry/nel/nel.controller';
 
 /**
  * Compile {@link SentryModule} with the given configuration values exposed
@@ -33,12 +32,6 @@ describe('SentryModule', () => {
     const reporter = moduleRef.get<SentryReporter>(SENTRY_REPORTER);
 
     expect(reporter).toBeInstanceOf(NoopSentryReporter);
-  });
-
-  test('registers the NEL controller', async () => {
-    const moduleRef = await compile({});
-
-    expect(moduleRef.get(NelController)).toBeInstanceOf(NelController);
   });
 
   test('honours SENTRY_ENABLED=false even when a DSN is present', async () => {

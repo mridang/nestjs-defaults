@@ -5,6 +5,22 @@ import { default as helm } from 'helmet';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { BetterLogger } from './logging/index.js';
+import bodyParser from 'body-parser';
+import {
+  createRateLimiter,
+  type RateLimitOptions,
+} from './services/edge/rate-limit.js';
+import {
+  CSP_REPORT_PATH,
+  securityHeaders,
+} from './services/headers/security-headers.js';
+import { MAX_REPORT_BYTES } from './services/csp/csp.controller.js';
+
+/** Options for {@link configure}. */
+export interface ConfigureOptions {
+  /** Per-address rate limiting; on by default. Pass false to switch it off. */
+  rateLimit?: false | RateLimitOptions;
+}
 
 /**
  * An Express-style middleware function `(req, res, next) => void`. Handlers that
@@ -44,7 +60,10 @@ function getExpressMiddlewareAdapter(
     : undefined;
 }
 
-export default function configure(nestApp: NestExpressApplication) {
+export default function configure(
+  nestApp: NestExpressApplication,
+  options: ConfigureOptions = {},
+) {
   nestApp.useLogger(nestApp.get(BetterLogger));
   nestApp.useGlobalFilters(new CustomHttpExceptionFilter());
 
@@ -67,6 +86,19 @@ export default function configure(nestApp: NestExpressApplication) {
       ? expressAdapter.useExpressMiddleware(mw)
       : (nestApp.use as (mw: ExpressMiddleware) => void)(mw);
 
+  if (options.rateLimit !== false) {
+    mount(createRateLimiter(options.rateLimit) as ExpressMiddleware);
+  }
+  if (!expressAdapter) {
+    mountAt(
+      CSP_REPORT_PATH,
+      bodyParser.raw({
+        type: ['application/csp-report', 'application/reports+json'],
+        limit: MAX_REPORT_BYTES,
+      }),
+    );
+  }
+  mount(securityHeaders);
   mountAt('/robots.txt', (_req: Request, res: Response) => {
     res.type('text/plain');
     res.send('User-agent: *\nDisallow: /');
@@ -74,9 +106,20 @@ export default function configure(nestApp: NestExpressApplication) {
   mount(cookieParser());
   mount(
     helm({
+      strictTransportSecurity: {
+        maxAge: 63072000,
+        includeSubDomains: true,
+        preload: true,
+      },
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      frameguard: { action: 'deny' },
+      crossOriginResourcePolicy: { policy: 'same-site' },
       contentSecurityPolicy: {
         useDefaults: true,
         directives: {
+          'frame-ancestors': ["'none'"],
+          'report-uri': [CSP_REPORT_PATH],
+          'report-to': ['csp-endpoint'],
           'script-src': ["'self'", 'js.pusher.com'],
           'connect-src': [
             "'self'",
