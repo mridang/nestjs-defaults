@@ -171,7 +171,15 @@ describe('app.controller test', () => {
       .expect('reporting-endpoints', 'csp-endpoint="/csp/reports"')
       .expect('content-security-policy', /frame-ancestors 'none';?/)
       .expect('content-security-policy', /report-uri \/csp\/reports/)
-      .expect('content-security-policy', /report-to csp-endpoint/);
+      .expect('content-security-policy', /report-to csp-endpoint/)
+      .expect(
+        'content-security-policy',
+        /script-src [^;]*static\.cloudflareinsights\.com/,
+      )
+      .expect(
+        'content-security-policy',
+        /connect-src [^;]*cloudflareinsights\.com/,
+      );
   });
 
   test('that the application no longer sets network error logging headers', async () => {

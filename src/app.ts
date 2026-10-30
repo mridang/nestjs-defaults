@@ -120,9 +120,15 @@ export default function configure(
           'frame-ancestors': ["'none'"],
           'report-uri': [CSP_REPORT_PATH],
           'report-to': ['csp-endpoint'],
-          'script-src': ["'self'", 'js.pusher.com'],
+          'script-src': [
+            "'self'",
+            'js.pusher.com',
+            // Cloudflare Web Analytics' beacon, which Cloudflare adds to pages.
+            'static.cloudflareinsights.com',
+          ],
           'connect-src': [
             "'self'",
+            'cloudflareinsights.com',
             '*.pusher.com',
             'ws.pusherapp.com',
             'wss://ws-mt1.pusher.com',
