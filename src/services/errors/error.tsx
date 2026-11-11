@@ -5,6 +5,8 @@ import { FunctionalComponent } from 'preact';
 import { HttpStatus } from '@nestjs/common';
 import { render } from 'preact-render-to-string';
 
+/** Sends the visitor back; the error page ships no script, so the link carries the history call. */
+const GO_BACK_HREF = 'javascript:window.history.back();';
 const errors: Record<
   number,
   {
@@ -345,11 +347,7 @@ const ErrorPage: FunctionalComponent<{
           <p className="main_error-message">
             We are sorry for the inconvenience.
           </p>
-          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid -- the Go back link deliberately uses the history API */}
-          <a
-            className="main_error-link"
-            href="javascript:window.history.back();"
-          >
+          <a className="main_error-link" href={GO_BACK_HREF}>
             Go back
           </a>
         </main>

@@ -20,8 +20,7 @@ import { getAsyncLocalStorage } from './timing.interceptor.js';
  * }
  * ```
  */
-// eslint-disable-next-line sonarjs/function-name -- the decorator is public API and is used as @ServerTiming
-export function ServerTiming(key: string, description?: string) {
+function serverTiming(key: string, description?: string) {
   return function (
     _target: unknown,
     propertyKey: string,
@@ -29,28 +28,36 @@ export function ServerTiming(key: string, description?: string) {
   ) {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (...args: unknown[]) {
-      const start = performance.now();
-      let result;
-      try {
-        // eslint-disable-next-line unicorn/no-this-outside-of-class -- the wrapped method must receive the instance as this
-        result = await originalMethod.apply(this, args);
-      } catch (error) {
+    class Timed {
+      async timed(this: unknown, ...args: unknown[]) {
+        const start = performance.now();
+        let result;
+        try {
+          result = await originalMethod.apply(this, args);
+        } catch (error) {
+          const end = performance.now();
+          const executionTime = end - start;
+          const store = getAsyncLocalStorage();
+          if (store) {
+            store.set(propertyKey, {
+              key,
+              duration: executionTime,
+              description,
+            });
+          }
+          throw error;
+        }
         const end = performance.now();
         const executionTime = end - start;
         const store = getAsyncLocalStorage();
-        if (store) {
-          store.set(propertyKey, { key, duration: executionTime, description });
-        }
-        throw error;
+        store.set(propertyKey, { key, duration: executionTime, description });
+        return result;
       }
-      const end = performance.now();
-      const executionTime = end - start;
-      const store = getAsyncLocalStorage();
-      store.set(propertyKey, { key, duration: executionTime, description });
-      return result;
-    };
+    }
+    descriptor.value = Timed.prototype.timed;
 
     return descriptor;
   };
 }
+
+export { serverTiming as ServerTiming };

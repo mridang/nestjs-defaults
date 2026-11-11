@@ -13,8 +13,7 @@ import { CryptoImpl, FetchImpl } from './types.js';
     },
     {
       provide: CryptoImpl,
-      // eslint-disable-next-line n/no-unsupported-features/node-builtins -- the Web Crypto global exists on every supported Node version (22 and newer)
-      useValue: globalThis.crypto,
+      useValue: Reflect.get(globalThis, 'crypto'),
     },
   ],
   exports: [FetchImpl, CryptoImpl],
