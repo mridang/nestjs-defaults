@@ -74,7 +74,7 @@
     "@aws-sdk/client-secrets-manager": "^3.1166.0",
     "@eslint/compat": "^2.1.1",
     "@jest/globals": "^30.0.3",
-    "@mridang/eslint-defaults": "file:../../../../../../../../private/tmp/claude-501/-Users-mridang-Code-mridang-eslint-defaults--claude-worktrees-jolly-nobel-b54514/5d85ee26-5030-436a-b806-a5058404a92f/scratchpad/pack/mridang-eslint-defaults-2.0.1.tgz",
+    "@mridang/eslint-defaults": "^2.1.0",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/cli": "^11.0.7",
     "@nestjs/common": "^11.2.8",
