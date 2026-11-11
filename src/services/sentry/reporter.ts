@@ -130,7 +130,6 @@ export class NoopSentryReporter implements SentryReporter {
  * `true` when executing inside a Cloudflare Workers isolate.
  */
 const ON_CLOUDFLARE_WORKERS =
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins -- navigator is only read to detect Workers and is absent elsewhere
   globalThis.navigator?.userAgent === 'Cloudflare-Workers';
 
 /**

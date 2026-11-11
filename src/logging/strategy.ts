@@ -28,7 +28,6 @@ export const ECS_VERSION = '9.4.0';
  * documented and stable way to detect the runtime.
  */
 const ON_CLOUDFLARE_WORKERS =
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins -- navigator is only read to detect Workers and is absent elsewhere
   globalThis.navigator?.userAgent === 'Cloudflare-Workers';
 
 /**
