@@ -1,9 +1,14 @@
 /**
  * @file Tests for the per-address rate limiter, covering limits, exemptions and fail-open behaviour.
  */
+import { readFile } from 'node:fs/promises';
 import { describe, expect, jest, test } from '@jest/globals';
 import type { NextFunction, Request, Response } from 'express';
 import { createRateLimiter } from '../../../src/services/edge/rate-limit';
+
+const ips = JSON.parse(
+  await readFile(new URL('../../fixtures/ips.json', import.meta.url), 'utf8'),
+) as { clientIp: string; cloudflareIp: string };
 
 /**
  * Builds a request-shaped object with a client address and an optional Cloudflare address header.
@@ -19,11 +24,9 @@ function aRequest(path: string, method = 'GET'): Request {
   return {
     path,
     method,
-    // eslint-disable-next-line sonarjs/no-hardcoded-ip -- test fixture
-    ip: '1.2.3.4',
+    ip: ips.clientIp,
     get: (name: string) =>
-      // eslint-disable-next-line sonarjs/no-hardcoded-ip -- test fixture
-      name === 'cf-connecting-ip' ? '9.9.9.9' : undefined,
+      name === 'cf-connecting-ip' ? ips.cloudflareIp : undefined,
   } as unknown as Request;
 }
 
@@ -82,7 +85,7 @@ describe('createRateLimiter', () => {
       aRequest('/'),
     );
 
-    expect(limit).toHaveBeenCalledWith({ key: 'a:9.9.9.9' });
+    expect(limit).toHaveBeenCalledWith({ key: `a:${ips.cloudflareIp}` });
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(429);
   });
