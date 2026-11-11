@@ -57,10 +57,7 @@ export class CustomHttpExceptionFilter implements ExceptionFilter {
    * filter.isExceptionObject('boom'); // false
    * ```
    */
-  public isExceptionObject(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- thrown values are untyped at runtime
-    err: any,
-  ): err is Error {
+  public isExceptionObject(err: unknown): err is Error {
     return isObject(err) && !!(err as Error).message;
   }
 
@@ -74,9 +71,9 @@ export class CustomHttpExceptionFilter implements ExceptionFilter {
    * ```
    */
   private static isHttpError(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- thrown values are untyped at runtime
-    err: any,
+    err: unknown,
   ): err is { statusCode: number; message: string } {
-    return err?.statusCode && err?.message;
+    const candidate = err as { statusCode?: number; message?: string } | null;
+    return Boolean(candidate?.statusCode && candidate?.message);
   }
 }
