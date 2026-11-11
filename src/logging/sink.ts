@@ -1,3 +1,6 @@
+/**
+ * @file Sinks that write finished log documents to the console or to stdout.
+ */
 import type { Ecs } from '@elastic/ecs';
 
 /**
@@ -27,8 +30,12 @@ export interface LogSink {
  */
 export class StructuredConsoleSink implements LogSink {
   /**
-   * Write the document as a structured object the platform can index.
+   * Writes the document as a structured object the platform can index.
    * @param entry - The complete ECS log document to write.
+   * @example
+   * ```ts
+   * new StructuredConsoleSink().emit({ message: 'ready', '@timestamp': now });
+   * ```
    */
   emit(entry: Ecs): void {
     console.log(entry);
@@ -44,8 +51,12 @@ export class StructuredConsoleSink implements LogSink {
  */
 export class StdoutJsonSink implements LogSink {
   /**
-   * Write the document as one newline-terminated JSON object.
+   * Writes the document as one newline-terminated JSON object.
    * @param entry - The complete ECS log document to write.
+   * @example
+   * ```ts
+   * new StdoutJsonSink().emit({ message: 'ready', '@timestamp': now });
+   * ```
    */
   emit(entry: Ecs): void {
     process.stdout.write(`${JSON.stringify(entry)}\n`);
@@ -61,8 +72,12 @@ export class StdoutJsonSink implements LogSink {
  */
 export class PrettyConsoleSink implements LogSink {
   /**
-   * Render `timestamp level [logger] message` and write it.
+   * Renders `timestamp level [logger] message` and writes it to the console.
    * @param entry - The complete ECS log document to write.
+   * @example
+   * ```ts
+   * new PrettyConsoleSink().emit({ message: 'ready', log: { level: 'info' } });
+   * ```
    */
   emit(entry: Ecs): void {
     const level = (entry.log?.level ?? 'info').toUpperCase().padEnd(5);

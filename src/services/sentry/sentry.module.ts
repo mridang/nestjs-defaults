@@ -1,3 +1,6 @@
+/**
+ * @file Nest module that wires the Sentry reporter and interceptor.
+ */
 import { DynamicModule, Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
@@ -20,8 +23,13 @@ import { SentryInterceptor } from './sentry.interceptor.js';
 @Module({})
 export class SentryModule {
   /**
-   * Build the module, reading Sentry configuration from {@link ConfigService}.
+   * Builds the module, reading Sentry configuration from {@link ConfigService}.
    * @returns The configured dynamic module.
+   * @example
+   * ```ts
+   * @Module({ imports: [SentryModule.forRoot()] })
+   * export class AppModule {}
+   * ```
    */
   static forRoot(): DynamicModule {
     return {

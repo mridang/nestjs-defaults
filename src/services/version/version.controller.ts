@@ -1,3 +1,6 @@
+/**
+ * @file Controller that reports the running release version.
+ */
 import { Controller, Get, Header, HttpCode, HttpStatus } from '@nestjs/common';
 import { makeBadge } from 'badge-maker';
 

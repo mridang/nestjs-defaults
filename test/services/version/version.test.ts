@@ -1,3 +1,6 @@
+/**
+ * @file End-to-end tests for the version badge endpoint.
+ */
 import request from 'supertest';
 import { HttpStatus } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';

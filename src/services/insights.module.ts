@@ -1,3 +1,6 @@
+/**
+ * @file Nest module that assembles the insights (Sentry) services.
+ */
 import { DynamicModule } from '@nestjs/common';
 import { SentryModule } from './sentry/index.js';
 
@@ -8,6 +11,10 @@ import { SentryModule } from './sentry/index.js';
  * the active runtime. With no DSN the reporter is a no-op, so this is safe to
  * include on runtimes where Sentry is not configured.
  * @returns The Sentry insights module.
+ * @example
+ * ```ts
+ * imports: [createInsightsModule()];
+ * ```
  */
 export function createInsightsModule(): DynamicModule {
   return SentryModule.forRoot();

@@ -1,3 +1,6 @@
+/**
+ * @file Applies the standard defaults to a Nest application: logging, filters, security and validation.
+ */
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { CustomHttpExceptionFilter } from './services/errors/errors.filter.js';
 import cookieParser from 'cookie-parser';
@@ -46,8 +49,15 @@ interface ExpressMiddlewareAdapter {
 }
 
 /**
- * Detect whether the application's HTTP adapter wraps Express middleware (the
+ * Detects whether the application's HTTP adapter wraps Express middleware (the
  * Cloudflare Workers adapter) rather than running it natively (Express).
+ * @param nestApp - The Nest application whose HTTP adapter is inspected.
+ * @returns The adapter when it can wrap Express middleware, otherwise undefined.
+ * @example
+ * ```ts
+ * const adapter = getExpressMiddlewareAdapter(app);
+ * adapter?.useExpressMiddleware(mw);
+ * ```
  */
 function getExpressMiddlewareAdapter(
   nestApp: NestExpressApplication,
@@ -59,6 +69,19 @@ function getExpressMiddlewareAdapter(
     : undefined;
 }
 
+/**
+ * Applies the standard defaults to a Nest application: logging, the exception
+ * filter, rate limiting, the CSP report endpoint, security headers, cookies,
+ * Helmet, CORS and request validation.
+ * @param nestApp - The Nest application to configure.
+ * @param options - Optional settings, such as switching rate limiting off.
+ * @returns The same application, now configured.
+ * @example
+ * ```ts
+ * const app = await NestFactory.create(AppModule);
+ * configure(app, { rateLimit: false });
+ * ```
+ */
 export default function configure(
   nestApp: NestExpressApplication,
   options: ConfigureOptions = {},

@@ -1,3 +1,6 @@
+/**
+ * @file Tests for the CSP and Reporting API report summariser, covering formats and privacy cuts.
+ */
 import { describe, expect, test } from '@jest/globals';
 import { summariseReports } from '../../../src/services/csp/csp-reports';
 

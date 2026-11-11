@@ -1,3 +1,6 @@
+/**
+ * @file Tests for the security headers middleware.
+ */
 import { describe, expect, jest, test } from '@jest/globals';
 import type { Request, Response } from 'express';
 import {

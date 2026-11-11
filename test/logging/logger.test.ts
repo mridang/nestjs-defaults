@@ -1,3 +1,6 @@
+/**
+ * @file Tests for the BetterLogger, covering ECS documents, levels, CLS context and errors.
+ */
 import { expect, jest, describe, test, beforeEach } from '@jest/globals';
 import { LogLevel } from '@nestjs/common';
 import type { Ecs } from '@elastic/ecs';
@@ -14,6 +17,15 @@ class CapturingSink implements LogSink {
   }
 }
 
+/**
+ * Creates a fake CLS service whose `get` returns the given request context.
+ * @param ctx - The request context the fake service returns.
+ * @returns A fake CLS service.
+ * @example
+ * ```ts
+ * const logger = new BetterLogger(makeCls({ url: { path: '/' } }), strategy);
+ * ```
+ */
 function makeCls(ctx: Partial<Ecs> | undefined): ClsService {
   return {
     get: jest.fn().mockReturnValue(ctx),

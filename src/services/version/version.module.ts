@@ -1,3 +1,6 @@
+/**
+ * @file Nest module that provides the version endpoint.
+ */
 import { Module } from '@nestjs/common';
 import { VersionController } from './version.controller.js';
 

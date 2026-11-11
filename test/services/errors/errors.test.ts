@@ -1,3 +1,6 @@
+/**
+ * @file End-to-end tests for the error filter, covering JSON and HTML error responses.
+ */
 import request from 'supertest';
 import {
   Controller,

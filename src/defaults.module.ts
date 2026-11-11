@@ -1,3 +1,6 @@
+/**
+ * @file Root Nest module that wires the default services, controllers and interceptors together.
+ */
 import { Global, MiddlewareConsumer, Module } from '@nestjs/common';
 import { DefaultController } from './app.controller.js';
 import { NodeModule } from './services/core/core.module.js';

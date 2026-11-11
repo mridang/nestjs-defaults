@@ -1,3 +1,6 @@
+/**
+ * @file Server-rendered error page shown for failed requests.
+ */
 import { FunctionalComponent } from 'preact';
 import { HttpStatus } from '@nestjs/common';
 import { render } from 'preact-render-to-string';
@@ -342,7 +345,7 @@ const ErrorPage: FunctionalComponent<{
           <p className="main_error-message">
             We are sorry for the inconvenience.
           </p>
-          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid -- the Go back link deliberately uses the history API */}
           <a
             className="main_error-link"
             href="javascript:window.history.back();"
@@ -355,5 +358,7 @@ const ErrorPage: FunctionalComponent<{
   );
 };
 
-export default (httpStatus: number) =>
+const renderErrorPage = (httpStatus: number) =>
   render(<ErrorPage httpStatus={httpStatus} />);
+
+export default renderErrorPage;

@@ -1,3 +1,6 @@
+/**
+ * @file Middleware that records request-scoped Elastic Common Schema context into CLS.
+ */
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { ClsService } from 'nestjs-cls';
@@ -62,6 +65,11 @@ let warm = false;
  * This is the single piece of mutable state the request context needs:
  * cold-start status is, by definition, a fact about previous invocations.
  * @returns `true` only for the first request after the isolate starts.
+ * @example
+ * ```ts
+ * consumeColdStart(); // true on the first call in an isolate
+ * consumeColdStart(); // false afterwards
+ * ```
  */
 function consumeColdStart(): boolean {
   if (warm) {
@@ -72,18 +80,26 @@ function consumeColdStart(): boolean {
 }
 
 /**
- * Parse a Cloudflare TLS version string such as `'TLSv1.3'` into `'1.3'`.
+ * Parses a Cloudflare TLS version string such as `'TLSv1.3'` into `'1.3'`.
  * @param tlsVersion - The Cloudflare TLS version string.
  * @returns The bare version number, or `undefined` when not parseable.
+ * @example
+ * ```ts
+ * parseTlsVersion('TLSv1.3'); // '1.3'
+ * ```
  */
 function parseTlsVersion(tlsVersion?: string): string | undefined {
   return tlsVersion?.replace(/^TLSv/, '');
 }
 
 /**
- * Map Cloudflare edge metadata onto the ECS fields it corresponds to.
+ * Maps Cloudflare edge metadata onto the ECS fields it corresponds to.
  * @param cf - The Cloudflare request metadata.
  * @returns The ECS fields derived from the edge metadata.
+ * @example
+ * ```ts
+ * mapEdgeMetadata({ colo: 'DFW', country: 'US', tlsVersion: 'TLSv1.3' });
+ * ```
  */
 function mapEdgeMetadata(cf: CloudflareProperties): Partial<Ecs> {
   return {
@@ -129,15 +145,24 @@ export class RequestIdMiddleware implements NestMiddleware {
   private readonly uaCache = new Map<string, UAParser.IResult>();
 
   /**
+   * Creates the middleware with the request-scoped store it writes to.
    * @param clsService - The request-scoped store the context is written to.
+   * @example
+   * ```ts
+   * consumer.apply(new RequestIdMiddleware(clsService)).forRoutes('*');
+   * ```
    */
   constructor(private readonly clsService: ClsService) {}
 
   /**
-   * Assemble the ECS request context and store it for the duration of the call.
+   * Assembles the ECS request context and stores it for the duration of the call.
    * @param req - The incoming request.
    * @param _res - The outgoing response (unused).
    * @param next - The next handler in the chain.
+   * @example
+   * ```ts
+   * middleware.use(req, res, () => logger.log('handled'));
+   * ```
    */
   use(req: EdgeRequest, _res: Response, next: NextFunction): void {
     const userAgent = req.headers['user-agent'] ?? '';
@@ -186,9 +211,13 @@ export class RequestIdMiddleware implements NestMiddleware {
   }
 
   /**
-   * Parse a user-agent string, caching results to avoid reparsing repeats.
-   * @param userAgent - The raw user-agent header value.
+   * Parses a user-agent string, caching results to avoid reparsing repeats.
+   * @param userAgent - The raw user-agent header text.
    * @returns The parsed user-agent result.
+   * @example
+   * ```ts
+   * this.parseUserAgent('Mozilla/5.0 (X11; Linux x86_64) Firefox/120.0').browser.name;
+   * ```
    */
   private parseUserAgent(userAgent: string): UAParser.IResult {
     const cached = this.uaCache.get(userAgent);
@@ -201,9 +230,13 @@ export class RequestIdMiddleware implements NestMiddleware {
   }
 
   /**
-   * Coerce a possibly-array header value to its first string.
-   * @param value - The header value.
+   * Coerces a possibly-array header value to its first string.
+   * @param value - A header value that may be repeated as an array.
    * @returns The first string value, or `undefined`.
+   * @example
+   * ```ts
+   * this.firstHeader(['a', 'b']); // 'a'
+   * ```
    */
   private firstHeader(
     value: string | string[] | undefined,
@@ -212,9 +245,13 @@ export class RequestIdMiddleware implements NestMiddleware {
   }
 
   /**
-   * Parse a numeric header value.
-   * @param value - The header value.
+   * Parses a numeric header value.
+   * @param value - A header value that may be repeated as an array.
    * @returns The parsed number, or `undefined` when absent or invalid.
+   * @example
+   * ```ts
+   * this.toNumber('42'); // 42
+   * ```
    */
   private toNumber(value: string | string[] | undefined): number | undefined {
     const single = this.firstHeader(value);

@@ -1,5 +1,5 @@
 /**
- * Structured ECS logging: a runtime-agnostic logger that assembles Elastic
+ * @file Structured ECS logging barrel: a runtime-agnostic logger that assembles Elastic
  * Common Schema documents and writes them through a per-runtime sink.
  */
 export { BetterLogger } from './logger.js';

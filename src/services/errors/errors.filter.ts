@@ -1,3 +1,6 @@
+/**
+ * @file Exception filter that turns thrown errors into safe, consistent HTTP responses.
+ */
 import {
   ArgumentsHost,
   Catch,
@@ -44,17 +47,34 @@ export class CustomHttpExceptionFilter implements ExceptionFilter {
     }
   }
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  public isExceptionObject(err: any): err is Error {
+  /**
+   * Tells whether a thrown value is an object carrying a message.
+   * @param err - The thrown value, which may be of any shape.
+   * @returns True when the value is an object with a non-empty message.
+   * @example
+   * ```ts
+   * filter.isExceptionObject(new Error('boom')); // true
+   * filter.isExceptionObject('boom'); // false
+   * ```
+   */
+  public isExceptionObject(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- thrown values are untyped at runtime
+    err: any,
+  ): err is Error {
     return isObject(err) && !!(err as Error).message;
   }
 
   /**
-   * Checks if the thrown error comes from the "http-errors" library.
-   * @param err - Error object.
+   * Checks whether the thrown error comes from the "http-errors" library.
+   * @param err - The thrown value, which may be of any shape.
+   * @returns True when the value carries both a status code and a message.
+   * @example
+   * ```ts
+   * CustomHttpExceptionFilter.isHttpError({ statusCode: 404, message: 'x' }); // true
+   * ```
    */
-  /* eslint-disable @typescript-eslint/no-explicit-any */
   private static isHttpError(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- thrown values are untyped at runtime
     err: any,
   ): err is { statusCode: number; message: string } {
     return err?.statusCode && err?.message;

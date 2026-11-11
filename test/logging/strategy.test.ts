@@ -1,3 +1,6 @@
+/**
+ * @file Tests for the logging strategy selection and the resource fields each runtime produces.
+ */
 import { expect, describe, test } from '@jest/globals';
 import { HostInfo, selectStrategy } from '../../src/logging/strategy';
 import {

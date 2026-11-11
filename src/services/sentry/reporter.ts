@@ -1,4 +1,8 @@
 /**
+ * @file Reports errors and events to Sentry on the active runtime.
+ */
+
+/**
  * Injection token for the active {@link SentryReporter}.
  */
 export const SENTRY_REPORTER = Symbol('SENTRY_REPORTER');
@@ -74,7 +78,13 @@ interface SentryApi {
  */
 export class SdkSentryReporter implements SentryReporter {
   /**
-   * @param sentry - The loaded Sentry SDK.
+   * Wraps a loaded Sentry SDK so the application can report through it.
+   * @param sentry - The loaded Sentry SDK that receives every report.
+   * @example
+   * ```ts
+   * const reporter = new SdkSentryReporter(await loadSdk());
+   * reporter.captureMessage('started', 'info');
+   * ```
    */
   constructor(private readonly sentry: SentryApi) {}
 
@@ -120,8 +130,8 @@ export class NoopSentryReporter implements SentryReporter {
  * `true` when executing inside a Cloudflare Workers isolate.
  */
 const ON_CLOUDFLARE_WORKERS =
-  typeof navigator !== 'undefined' &&
-  navigator.userAgent === 'Cloudflare-Workers';
+  // eslint-disable-next-line n/no-unsupported-features/node-builtins -- navigator is only read to detect Workers and is absent elsewhere
+  globalThis.navigator?.userAgent === 'Cloudflare-Workers';
 
 /**
  * Options for {@link createSentryReporter}.
@@ -168,7 +178,7 @@ const DEFAULT_LOADERS: SentrySdkLoaders = {
 };
 
 /**
- * Build the reporter for the active runtime.
+ * Builds the reporter for the active runtime.
  *
  * With no DSN, or when disabled, this returns a {@link NoopSentryReporter}. On
  * Cloudflare Workers it loads `@sentry/cloudflare` and relies on the worker
@@ -178,6 +188,10 @@ const DEFAULT_LOADERS: SentrySdkLoaders = {
  * @param options - The reporter configuration.
  * @param loaders - The SDK loaders; defaults to importing the real packages.
  * @returns The reporter for the active runtime.
+ * @example
+ * ```ts
+ * const reporter = await createSentryReporter({ dsn: process.env.SENTRY_DSN });
+ * ```
  */
 export async function createSentryReporter(
   options: SentryReporterOptions,

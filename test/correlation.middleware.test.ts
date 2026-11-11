@@ -1,18 +1,38 @@
+/**
+ * @file Tests for the request-context middleware, covering ECS fields and Cloudflare edge metadata.
+ */
 import { expect, jest, describe, test } from '@jest/globals';
 import type { Request, Response } from 'express';
 import type { Ecs } from '@elastic/ecs';
 import { ClsService } from 'nestjs-cls';
 import { RequestIdMiddleware } from '../src/correlation.middleware';
 
+/**
+ * Creates a fake CLS service that runs callbacks immediately and records writes.
+ * @returns The fake service and the mock that records its `set` calls.
+ * @example
+ * ```ts
+ * const { cls, set } = makeCls();
+ * new RequestIdMiddleware(cls).use(req, res, next);
+ * ```
+ */
 function makeCls(): { cls: ClsService; set: jest.Mock } {
   const set = jest.fn();
   const cls = {
-    run: (callback: () => void) => callback(),
+    run: (fn: () => void) => fn(),
     set,
   } as unknown as ClsService;
   return { cls, set };
 }
 
+/**
+ * Builds a representative incoming request with a browser user agent and Cloudflare-style headers.
+ * @returns A request-shaped object for the middleware to read.
+ * @example
+ * ```ts
+ * const req = baseRequest();
+ * ```
+ */
 function baseRequest(): Request {
   return {
     headers: {

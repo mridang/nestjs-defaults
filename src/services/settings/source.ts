@@ -1,4 +1,8 @@
 /**
+ * @file Secrets sources that supply configuration values from the environment or AWS Secrets Manager.
+ */
+
+/**
  * A source of configuration secrets.
  *
  * Each runtime keeps secrets in a different place — AWS in Secrets Manager,
@@ -7,8 +11,12 @@
  */
 export interface SecretsSource {
   /**
-   * Resolve the secrets as a flat key/value map.
+   * Resolves the secrets as a flat key/value map.
    * @returns The resolved secrets.
+   * @example
+   * ```ts
+   * const secrets = await source.load();
+   * ```
    */
   load(): Promise<Record<string, string>>;
 }
@@ -22,7 +30,12 @@ export interface SecretsSource {
  */
 export class EnvSecretsSource implements SecretsSource {
   /**
-   * @returns An empty map; the environment is read by the configuration layer.
+   * Resolves to an empty map because the configuration layer reads the environment itself.
+   * @returns An empty map of secrets.
+   * @example
+   * ```ts
+   * const secrets = await new EnvSecretsSource().load(); // {}
+   * ```
    */
   load(): Promise<Record<string, string>> {
     return Promise.resolve({});
@@ -48,9 +61,13 @@ interface SecretsManagerSdk {
 }
 
 /**
- * Load the AWS Secrets Manager SDK lazily, so the package only requires
+ * Loads the AWS Secrets Manager SDK lazily, so the package only requires
  * `@aws-sdk/client-secrets-manager` when this source is actually used.
  * @returns The Secrets Manager SDK.
+ * @example
+ * ```ts
+ * const sdk = await loadSecretsManager();
+ * ```
  */
 const loadSecretsManager = (): Promise<SecretsManagerSdk> =>
   import('@aws-sdk/client-secrets-manager') as unknown as Promise<SecretsManagerSdk>;
@@ -60,8 +77,13 @@ const loadSecretsManager = (): Promise<SecretsManagerSdk> =>
  */
 export class AwsSecretsManagerSource implements SecretsSource {
   /**
+   * Creates a source that loads one secret bundle from AWS Secrets Manager.
    * @param secretId - The identifier of the secret to load.
    * @param loadSdk - Loader for the AWS SDK; defaults to a lazy dynamic import.
+   * @example
+   * ```ts
+   * const source = new AwsSecretsManagerSource('prod/api');
+   * ```
    */
   constructor(
     private readonly secretId: string,
@@ -69,8 +91,12 @@ export class AwsSecretsManagerSource implements SecretsSource {
   ) {}
 
   /**
-   * Fetch and parse the secret bundle from AWS Secrets Manager.
+   * Fetches and parses the secret bundle from AWS Secrets Manager.
    * @returns The secret key/value pairs.
+   * @example
+   * ```ts
+   * const secrets = await new AwsSecretsManagerSource('prod/api').load();
+   * ```
    */
   async load(): Promise<Record<string, string>> {
     const { SecretsManagerClient, GetSecretValueCommand } =
@@ -85,16 +111,21 @@ export class AwsSecretsManagerSource implements SecretsSource {
   }
 
   /**
-   * Parse a Secrets Manager response into a key/value map.
+   * Parses a Secrets Manager response into a key/value map.
    * @param data - The Secrets Manager response.
    * @returns The parsed secret key/value pairs.
+   * @throws Error when the response holds neither a string nor binary payload.
+   * @example
+   * ```ts
+   * AwsSecretsManagerSource.parse({ SecretString: '{"A":"1"}' }); // { A: '1' }
+   * ```
    */
   static parse(data: SecretValue): Record<string, string> {
     if (data.SecretString) {
       return JSON.parse(data.SecretString);
     }
     if (data.SecretBinary) {
-      return JSON.parse(new TextDecoder('utf8').decode(data.SecretBinary));
+      return JSON.parse(new TextDecoder('utf-8').decode(data.SecretBinary));
     }
     throw new Error('Secrets Manager returned no string or binary data');
   }

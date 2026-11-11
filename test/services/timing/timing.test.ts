@@ -1,3 +1,6 @@
+/**
+ * @file Tests for the server timing decorator and interceptor, checking the Server-Timing header.
+ */
 import request from 'supertest';
 import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
 import { TimingModule, ServerTiming } from './../../../src/services/timing';
@@ -27,7 +30,7 @@ class DynamicController {
 
   @ServerTiming('timeit')
   throwUp() {
-    throw new Error();
+    throw new Error('Timed failure');
   }
 
   @ServerTiming('timeit')

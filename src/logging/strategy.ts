@@ -1,3 +1,6 @@
+/**
+ * @file Chooses the log output strategy that suits the current runtime.
+ */
 import type { Ecs } from '@elastic/ecs';
 import os from 'node:os';
 import {
@@ -25,8 +28,8 @@ export const ECS_VERSION = '9.4.0';
  * documented and stable way to detect the runtime.
  */
 const ON_CLOUDFLARE_WORKERS =
-  typeof navigator !== 'undefined' &&
-  navigator.userAgent === 'Cloudflare-Workers';
+  // eslint-disable-next-line n/no-unsupported-features/node-builtins -- navigator is only read to detect Workers and is absent elsewhere
+  globalThis.navigator?.userAgent === 'Cloudflare-Workers';
 
 /**
  * Minimal view of `node:os` used to describe a host. Declared as an interface
@@ -63,9 +66,14 @@ export interface LogStrategy {
 }
 
 /**
- * Build the `service` fields common to every runtime from the environment.
+ * Builds the `service` fields common to every runtime from the environment.
  * @param env - The process environment to read service identity from.
  * @returns The `service` portion of an ECS document.
+ * @example
+ * ```ts
+ * buildService({ SERVICE_NAME: 'billing', NODE_ENV: 'production' });
+ * // { service: { name: 'billing', environment: 'production', ... } }
+ * ```
  */
 function buildService(
   env: Readonly<Record<string, string | undefined>>,
@@ -90,6 +98,10 @@ function buildService(
  * middleware, not here.
  * @param env - The process environment to read service identity from.
  * @returns The resource-level ECS fields for a Worker.
+ * @example
+ * ```ts
+ * const resource = buildCloudflareResource({ SERVICE_NAME: 'api' });
+ * ```
  */
 function buildCloudflareResource(
   env: Readonly<Record<string, string | undefined>>,
@@ -112,6 +124,10 @@ function buildCloudflareResource(
  * @param env - The process environment to read identity and cloud metadata from.
  * @param host - The host information source.
  * @returns The resource-level ECS fields for a Node runtime.
+ * @example
+ * ```ts
+ * const resource = buildNodeResource(process.env, os);
+ * ```
  */
 function buildNodeResource(
   env: Readonly<Record<string, string | undefined>>,
@@ -157,13 +173,18 @@ export interface SelectStrategyOptions {
 }
 
 /**
- * Choose the logging strategy for the active runtime.
+ * Chooses the logging strategy for the active runtime.
  *
  * Selection is by capability, never by cloud-provider name: a Worker logs
  * structured objects to `console`; a production Node process writes JSON lines
  * to stdout; any other Node process gets a human-readable line.
  * @param options - Overrides for environment, host, and runtime detection.
  * @returns The strategy to log with.
+ * @example
+ * ```ts
+ * const { sink, resource } = selectStrategy({ env: { NODE_ENV: 'production' } });
+ * sink.emit({ message: 'ready', '@timestamp': new Date().toISOString() });
+ * ```
  */
 export function selectStrategy(
   options: SelectStrategyOptions = {},

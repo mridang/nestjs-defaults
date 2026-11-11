@@ -1,3 +1,6 @@
+/**
+ * @file Jest configuration shared by the test runs of this project.
+ */
 export default {
   preset: 'ts-jest/presets/default-esm',
   transform: {

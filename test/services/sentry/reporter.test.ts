@@ -1,3 +1,6 @@
+/**
+ * @file Tests for the Sentry reporters, covering the no-op reporter, SDK delegation and loader selection.
+ */
 import { expect, describe, test, jest } from '@jest/globals';
 import {
   createSentryReporter,
@@ -7,7 +10,13 @@ import {
 } from '../../../src/services/sentry/reporter';
 
 /**
- * Build a fake Sentry SDK plus spies for asserting delegation.
+ * Builds a fake Sentry SDK with spies that record delegated calls.
+ * @returns The fake SDK with capture, breadcrumb, close and init mocks.
+ * @example
+ * ```ts
+ * const sentry = fakeSdk();
+ * new SdkSentryReporter(sentry).captureMessage('hi', 'info');
+ * ```
  */
 function fakeSdk() {
   return {

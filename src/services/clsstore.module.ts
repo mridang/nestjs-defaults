@@ -1,3 +1,6 @@
+/**
+ * @file Nest module that makes request-scoped continuation storage available app-wide.
+ */
 import { ClsModule } from 'nestjs-cls';
 
 /**
@@ -11,7 +14,7 @@ import { ClsModule } from 'nestjs-cls';
  *
  * Configuration:
  * - `global: true` ensures that this module is available throughout the entire
- *   application, making it easier to track and manage request contexts globally.
+ * application, making it easier to track and manage request contexts globally.
  */
 export const CoreContinuationModule = ClsModule.forRoot({
   global: true,
