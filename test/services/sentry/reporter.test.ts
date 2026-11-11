@@ -6,6 +6,9 @@ import {
   createSentryReporter,
   NoopSentryReporter,
   SdkSentryReporter,
+  type SentryBreadcrumb,
+  type SentryLevel,
+  type SentryReporter,
   SentrySdkLoaders,
 } from '../../../src/services/sentry/reporter';
 
@@ -20,18 +23,20 @@ import {
  */
 function fakeSdk() {
   return {
-    captureException: jest.fn(() => 'event-id'),
-    captureMessage: jest.fn(() => 'message-id'),
-    addBreadcrumb: jest.fn(),
-    close: jest.fn(async () => true),
-    init: jest.fn(),
+    captureException: jest.fn<(error: unknown) => string>(() => 'event-id'),
+    captureMessage: jest.fn<(message: string, level: SentryLevel) => string>(
+      () => 'message-id',
+    ),
+    addBreadcrumb: jest.fn<(breadcrumb: SentryBreadcrumb) => void>(),
+    close: jest.fn<(timeout?: number) => Promise<boolean>>(async () => true),
+    init: jest.fn<(options: { dsn: string; environment?: string }) => void>(),
   };
 }
 
 const DSN = 'https://client@account.ingest.sentry.io/1';
 
 describe('NoopSentryReporter', () => {
-  const reporter = new NoopSentryReporter();
+  const reporter: SentryReporter = new NoopSentryReporter();
 
   test('captureException yields no event id', () => {
     expect(reporter.captureException(new Error('boom'))).toBeUndefined();

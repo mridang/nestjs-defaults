@@ -6,6 +6,9 @@ import { describe, expect, jest, test } from '@jest/globals';
 import type { NextFunction, Request, Response } from 'express';
 import { createRateLimiter } from '../../../src/services/edge/rate-limit';
 
+/** Signature of a Workers Rate Limiting binding's `limit` method. */
+type RateLimit = (options: { key: string }) => Promise<{ success: boolean }>;
+
 const ips = JSON.parse(
   await readFile(new URL('../../fixtures/ips.json', import.meta.url), 'utf8'),
 ) as { clientIp: string; cloudflareIp: string };
@@ -30,6 +33,13 @@ function aRequest(path: string, method = 'GET'): Request {
   } as unknown as Request;
 }
 
+/** The chained response methods the limiter may call, each returning the response. */
+interface FakeResponse {
+  status: jest.Mock<(code: number) => FakeResponse>;
+  set: jest.Mock<(name: string, value: string) => FakeResponse>;
+  send: jest.Mock<(body?: unknown) => FakeResponse>;
+}
+
 /**
  * Builds a fake Express response whose chained methods all return the response.
  * @returns The fake response with `status`, `set` and `send` mocks.
@@ -39,11 +49,11 @@ function aRequest(path: string, method = 'GET'): Request {
  * res.status(429);
  * ```
  */
-function aResponse() {
-  const res = {
-    status: jest.fn(() => res),
-    set: jest.fn(() => res),
-    send: jest.fn(() => res),
+function aResponse(): FakeResponse {
+  const res: FakeResponse = {
+    status: jest.fn<(code: number) => FakeResponse>(() => res),
+    set: jest.fn<(name: string, value: string) => FakeResponse>(() => res),
+    send: jest.fn<(body?: unknown) => FakeResponse>(() => res),
   };
   return res;
 }
@@ -79,7 +89,7 @@ describe('createRateLimiter', () => {
   });
 
   test('counts by client address and refuses over the limit', async () => {
-    const limit = jest.fn(async () => ({ success: false }));
+    const limit = jest.fn<RateLimit>(async () => ({ success: false }));
     const { res, next } = await run(
       createRateLimiter({ env: async () => ({ RL_SITE: { limit } }) }),
       aRequest('/'),
@@ -91,7 +101,7 @@ describe('createRateLimiter', () => {
   });
 
   test('lets requests under the limit through', async () => {
-    const limit = jest.fn(async () => ({ success: true }));
+    const limit = jest.fn<RateLimit>(async () => ({ success: true }));
     const { next } = await run(
       createRateLimiter({ env: async () => ({ RL_SITE: { limit } }) }),
       aRequest('/'),
@@ -101,7 +111,7 @@ describe('createRateLimiter', () => {
   });
 
   test('fails open when the binding throws', async () => {
-    const limit = jest.fn(async () => {
+    const limit = jest.fn<RateLimit>(async () => {
       throw new Error('down');
     });
     const { next } = await run(
@@ -113,7 +123,7 @@ describe('createRateLimiter', () => {
   });
 
   test.each(['/hook', '/hook/x'])('never counts %s', async (path) => {
-    const limit = jest.fn(async () => ({ success: false }));
+    const limit = jest.fn<RateLimit>(async () => ({ success: false }));
     const { next } = await run(
       createRateLimiter({ env: async () => ({ RL_SITE: { limit } }) }),
       aRequest(path, 'POST'),
@@ -124,7 +134,7 @@ describe('createRateLimiter', () => {
   });
 
   test('uses the configured binding name', async () => {
-    const limit = jest.fn(async () => ({ success: true }));
+    const limit = jest.fn<RateLimit>(async () => ({ success: true }));
     await run(
       createRateLimiter({
         binding: 'OTHER',
