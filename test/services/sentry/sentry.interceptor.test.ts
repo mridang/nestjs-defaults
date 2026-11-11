@@ -1,3 +1,6 @@
+/**
+ * @file Tests for the Sentry interceptor, covering which errors are reported and the event header.
+ */
 import { expect, describe, test, jest } from '@jest/globals';
 import {
   BadRequestException,
@@ -13,8 +16,13 @@ import {
 } from '../../../src/services/sentry/reporter';
 
 /**
- * Drive the interceptor with a handler that throws the given error and return
- * how many times the reporter was asked to capture it.
+ * Drives the interceptor with a handler that throws the given error and counts the captures.
+ * @param error - The error the downstream handler throws.
+ * @returns How many times the reporter was asked to capture the error.
+ * @example
+ * ```ts
+ * await captureCountFor(new BadRequestException()); // 0
+ * ```
  */
 async function captureCountFor(error: unknown): Promise<number> {
   const reporter: SentryReporter = new NoopSentryReporter();

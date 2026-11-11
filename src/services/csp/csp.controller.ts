@@ -1,3 +1,6 @@
+/**
+ * @file Controller that receives Content-Security-Policy and Reporting API reports from browsers.
+ */
 import {
   Controller,
   HttpCode,
@@ -25,11 +28,9 @@ export class CspReportsController {
   @Post()
   @HttpCode(HttpStatus.NO_CONTENT)
   receive(@Req() req: Request & { rawBody?: Buffer }): void {
-    const raw = Buffer.isBuffer(req.rawBody)
-      ? req.rawBody
-      : Buffer.isBuffer(req.body)
-        ? req.body
-        : undefined;
+    const raw = [req.rawBody, req.body].find((candidate): candidate is Buffer =>
+      Buffer.isBuffer(candidate),
+    );
     if (raw === undefined) {
       return;
     }

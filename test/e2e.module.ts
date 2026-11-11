@@ -1,8 +1,10 @@
+/**
+ * @file Shared end-to-end harness that builds a Nest application with the defaults configured.
+ */
 import {
-  type DynamicModule,
-  type ForwardReference,
   type INestApplication,
   Logger,
+  type ModuleMetadata,
   type Provider,
   type Type,
 } from '@nestjs/common';
@@ -10,18 +12,20 @@ import { type NestExpressApplication } from '@nestjs/platform-express';
 import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import configure from '../src/app';
 
+/** One entry in a module's imports, as Nest accepts them. */
+type ModuleImport = NonNullable<ModuleMetadata['imports']>[number];
+
+/**
+ * Builds a Nest application for end-to-end tests, with the defaults configured.
+ */
 export class End2EndModule {
   app!: INestApplication;
-  private readonly imports: Array<
-    Type | DynamicModule | Promise<DynamicModule> | ForwardReference
-  >;
+  private readonly imports: ModuleImport[];
   private readonly controllers: Type[];
   private readonly providers: Provider[];
 
   constructor(options: {
-    imports?: Array<
-      Type | DynamicModule | Promise<DynamicModule> | ForwardReference
-    >;
+    imports?: ModuleImport[];
     providers?: Provider[];
     controllers?: Type[];
   }) {

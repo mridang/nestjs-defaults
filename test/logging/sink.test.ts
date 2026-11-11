@@ -1,3 +1,6 @@
+/**
+ * @file Tests for the three log sinks and the output each one writes.
+ */
 import { expect, jest, describe, test, afterEach } from '@jest/globals';
 import type { Ecs } from '@elastic/ecs';
 import {

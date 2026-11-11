@@ -1,18 +1,38 @@
+/**
+ * @file Tests for the request-context middleware, covering ECS fields and Cloudflare edge metadata.
+ */
 import { expect, jest, describe, test } from '@jest/globals';
 import type { Request, Response } from 'express';
 import type { Ecs } from '@elastic/ecs';
 import { ClsService } from 'nestjs-cls';
 import { RequestIdMiddleware } from '../src/correlation.middleware';
 
+/**
+ * Creates a fake CLS service that runs callbacks immediately and records writes.
+ * @returns The fake service and the mock that records its `set` calls.
+ * @example
+ * ```ts
+ * const { cls, set } = makeCls();
+ * new RequestIdMiddleware(cls).use(req, res, next);
+ * ```
+ */
 function makeCls(): { cls: ClsService; set: jest.Mock } {
   const set = jest.fn();
   const cls = {
-    run: (callback: () => void) => callback(),
+    run: (fn: () => void) => fn(),
     set,
   } as unknown as ClsService;
   return { cls, set };
 }
 
+/**
+ * Builds a representative incoming request with a browser user agent and Cloudflare-style headers.
+ * @returns A request-shaped object for the middleware to read.
+ * @example
+ * ```ts
+ * const req = baseRequest();
+ * ```
+ */
 function baseRequest(): Request {
   return {
     headers: {
@@ -82,7 +102,7 @@ describe('RequestIdMiddleware', () => {
       longitude: '-97.74260',
       postalCode: '78701',
       timezone: 'America/Chicago',
-      asn: 395747,
+      asn: 395_747,
       asOrganization: 'Cloudflare, Inc.',
       tlsVersion: 'TLSv1.3',
       tlsCipher: 'AEAD-AES128-GCM-SHA256',
@@ -105,7 +125,7 @@ describe('RequestIdMiddleware', () => {
           timezone: 'America/Chicago',
           location: { lat: 30.2713, lon: -97.7426 },
         },
-        as: { number: 395747, organization: { name: 'Cloudflare, Inc.' } },
+        as: { number: 395_747, organization: { name: 'Cloudflare, Inc.' } },
       },
       tls: {
         version: '1.3',

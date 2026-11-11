@@ -1,6 +1,26 @@
+/**
+ * @file Decorator and helper that record server timing entries for a handler.
+ */
 import { getAsyncLocalStorage } from './timing.interceptor.js';
 
-export function ServerTiming(key: string, description?: string) {
+/**
+ * Records how long a decorated method takes as a Server-Timing entry for the current request.
+ *
+ * The decorator name is part of the public API and is written as `@ServerTiming`, so it keeps its casing.
+ * @param key - The Server-Timing metric name.
+ * @param description - An optional human-readable description of the metric.
+ * @returns A method decorator that wraps the method and records its duration.
+ * @example
+ * ```ts
+ * class ReportService {
+ *   @ServerTiming('db', 'Loading rows')
+ *   async load() {
+ *     return [];
+ *   }
+ * }
+ * ```
+ */
+function serverTiming(key: string, description?: string) {
   return function (
     _target: unknown,
     propertyKey: string,
@@ -8,27 +28,36 @@ export function ServerTiming(key: string, description?: string) {
   ) {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (...args: unknown[]) {
-      const start = performance.now();
-      let result;
-      try {
-        result = await originalMethod.apply(this, args);
-      } catch (error) {
+    class Timed {
+      async timed(this: unknown, ...args: unknown[]) {
+        const start = performance.now();
+        let result;
+        try {
+          result = await originalMethod.apply(this, args);
+        } catch (error) {
+          const end = performance.now();
+          const executionTime = end - start;
+          const store = getAsyncLocalStorage();
+          if (store) {
+            store.set(propertyKey, {
+              key,
+              duration: executionTime,
+              description,
+            });
+          }
+          throw error;
+        }
         const end = performance.now();
         const executionTime = end - start;
         const store = getAsyncLocalStorage();
-        if (store) {
-          store.set(propertyKey, { key, duration: executionTime, description });
-        }
-        throw error;
+        store.set(propertyKey, { key, duration: executionTime, description });
+        return result;
       }
-      const end = performance.now();
-      const executionTime = end - start;
-      const store = getAsyncLocalStorage();
-      store.set(propertyKey, { key, duration: executionTime, description });
-      return result;
-    };
+    }
+    descriptor.value = Timed.prototype.timed;
 
     return descriptor;
   };
 }
+
+export { serverTiming as ServerTiming };

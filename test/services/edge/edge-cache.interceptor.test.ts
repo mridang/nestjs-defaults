@@ -1,3 +1,6 @@
+/**
+ * @file Tests for the edge cache interceptor, covering hits, misses, release keys and exclusions.
+ */
 import { describe, expect, jest, test } from '@jest/globals';
 import type { CallHandler, ExecutionContext } from '@nestjs/common';
 import { lastValueFrom, of } from 'rxjs';
@@ -13,6 +16,17 @@ class MemoryCache {
   }
 }
 
+/**
+ * Builds a fake execution context with a request for the path and a response that records headers.
+ * @param path - The request path.
+ * @param headers - Request headers, keyed by lower-case name.
+ * @param method - The HTTP method, defaulting to GET.
+ * @returns The context together with the fake response, request and sent headers.
+ * @example
+ * ```ts
+ * const { context, sent } = aContext('/', {}, 'GET');
+ * ```
+ */
 function aContext(
   path: string,
   headers: Record<string, string> = {},
@@ -39,6 +53,16 @@ function aContext(
   return { context, res, sent, req };
 }
 
+/**
+ * Builds an interceptor wired to the given in-memory cache and a fixed release.
+ * @param cache - The cache to use, or undefined to simulate no Cache API.
+ * @param paths - The paths the interceptor may cache.
+ * @returns The configured edge cache interceptor.
+ * @example
+ * ```ts
+ * const interceptor = build(new MemoryCache(), ['/']);
+ * ```
+ */
 function build(cache: MemoryCache | undefined, paths = ['/']) {
   return new EdgeCacheInterceptor(paths, {
     cache: () => cache as unknown as Cache | undefined,

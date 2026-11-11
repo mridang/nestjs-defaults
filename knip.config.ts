@@ -1,3 +1,6 @@
+/**
+ * @file Configuration for Knip, which reports unused files, exports and dependencies.
+ */
 export default {
   ignore: ['knip.config.ts'],
   ignoreDependencies: [

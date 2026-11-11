@@ -1,4 +1,8 @@
 /**
+ * @file Reports errors and events to Sentry on the active runtime.
+ */
+
+/**
  * Injection token for the active {@link SentryReporter}.
  */
 export const SENTRY_REPORTER = Symbol('SENTRY_REPORTER');
@@ -7,12 +11,7 @@ export const SENTRY_REPORTER = Symbol('SENTRY_REPORTER');
  * Severity levels shared by the Sentry SDKs.
  */
 export type SentryLevel =
-  | 'fatal'
-  | 'error'
-  | 'warning'
-  | 'log'
-  | 'info'
-  | 'debug';
+  'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug';
 
 /**
  * A breadcrumb attached to subsequent Sentry events.
@@ -33,31 +32,27 @@ export interface SentryBreadcrumb {
 export interface SentryReporter {
   /**
    * Report an exception.
-   *
-   * @param error The error to report.
+   * @param error - The error to report.
    * @returns The Sentry event id, when one was created.
    */
   captureException(error: unknown): string | undefined;
 
   /**
    * Report a message.
-   *
-   * @param message The message to report.
-   * @param level The message severity.
+   * @param message - The message to report.
+   * @param level - The message severity.
    */
   captureMessage(message: string, level: SentryLevel): void;
 
   /**
    * Attach a breadcrumb to subsequent events.
-   *
-   * @param breadcrumb The breadcrumb to record.
+   * @param breadcrumb - The breadcrumb to record.
    */
   addBreadcrumb(breadcrumb: SentryBreadcrumb): void;
 
   /**
    * Flush buffered events and close the client.
-   *
-   * @param timeout Maximum time to wait, in milliseconds.
+   * @param timeout - Maximum time to wait, in milliseconds.
    * @returns `true` when everything was flushed in time.
    */
   close(timeout?: number): Promise<boolean>;
@@ -83,7 +78,13 @@ interface SentryApi {
  */
 export class SdkSentryReporter implements SentryReporter {
   /**
-   * @param sentry The loaded Sentry SDK.
+   * Wraps a loaded Sentry SDK so the application can report through it.
+   * @param sentry - The loaded Sentry SDK that receives every report.
+   * @example
+   * ```ts
+   * const reporter = new SdkSentryReporter(await loadSdk());
+   * reporter.captureMessage('started', 'info');
+   * ```
    */
   constructor(private readonly sentry: SentryApi) {}
 
@@ -129,8 +130,7 @@ export class NoopSentryReporter implements SentryReporter {
  * `true` when executing inside a Cloudflare Workers isolate.
  */
 const ON_CLOUDFLARE_WORKERS =
-  typeof navigator !== 'undefined' &&
-  navigator.userAgent === 'Cloudflare-Workers';
+  globalThis.navigator?.userAgent === 'Cloudflare-Workers';
 
 /**
  * Options for {@link createSentryReporter}.
@@ -177,17 +177,20 @@ const DEFAULT_LOADERS: SentrySdkLoaders = {
 };
 
 /**
- * Build the reporter for the active runtime.
+ * Builds the reporter for the active runtime.
  *
  * With no DSN, or when disabled, this returns a {@link NoopSentryReporter}. On
  * Cloudflare Workers it loads `@sentry/cloudflare` and relies on the worker
  * entry being wrapped with `Sentry.withSentry`; on Node it loads and
  * initialises `@sentry/node`. Both SDKs are optional and imported only when a
  * reporter is actually needed.
- *
- * @param options The reporter configuration.
- * @param loaders The SDK loaders; defaults to importing the real packages.
+ * @param options - The reporter configuration.
+ * @param loaders - The SDK loaders; defaults to importing the real packages.
  * @returns The reporter for the active runtime.
+ * @example
+ * ```ts
+ * const reporter = await createSentryReporter({ dsn: process.env.SENTRY_DSN });
+ * ```
  */
 export async function createSentryReporter(
   options: SentryReporterOptions,

@@ -1,3 +1,6 @@
+/**
+ * @file End-to-end tests of the default controller, error handling, headers, cookies, validation and the version badge.
+ */
 import { expect } from '@jest/globals';
 import { End2EndModule } from './e2e.module';
 import { DefaultsModule } from '../src/defaults.module';
@@ -93,49 +96,37 @@ describe('app.controller test', () => {
   });
 
   test('that the error-handler handles http-400 errors', async () => {
-    await request(testModule.app.getHttpServer())
+    const response = await request(testModule.app.getHttpServer())
       .get('/404')
       .set('Accept', 'text/html')
       .expect(HttpStatus.NOT_FOUND)
-      .expect('Content-Type', 'text/html; charset=utf-8')
-      .expect((response) => {
-        if (!response.text.includes('<title>Not Found</title>')) {
-          throw new Error('Expected text not found in response');
-        }
-      });
+      .expect('Content-Type', 'text/html; charset=utf-8');
+    expect(response.text).toContain('<title>Not Found</title>');
   });
 
   test('that the error-handler handles http-500 errors', async () => {
-    await request(testModule.app.getHttpServer())
+    const response = await request(testModule.app.getHttpServer())
       .get('/500')
       .set('Accept', 'text/html')
       .expect(HttpStatus.INTERNAL_SERVER_ERROR)
-      .expect('Content-Type', 'text/html; charset=utf-8')
-      .expect((response) => {
-        if (!response.text.includes('<title>Internal Server Error</title>')) {
-          throw new Error('Expected text not found in response');
-        }
-      });
+      .expect('Content-Type', 'text/html; charset=utf-8');
+    expect(response.text).toContain('<title>Internal Server Error</title>');
   });
 
   test('that the error-handler handles non-http errors', async () => {
-    await request(testModule.app.getHttpServer())
+    const response = await request(testModule.app.getHttpServer())
       .get('/error')
       .set('Accept', 'text/html')
       .expect(HttpStatus.INTERNAL_SERVER_ERROR)
-      .expect('Content-Type', 'text/html; charset=utf-8')
-      .expect((response) => {
-        if (!response.text.includes('<title>Internal Server Error</title>')) {
-          throw new Error('Expected text not found in response');
-        }
-      });
+      .expect('Content-Type', 'text/html; charset=utf-8');
+    expect(response.text).toContain('<title>Internal Server Error</title>');
   });
 
   test('the application is configured to process cookies', async () => {
     await request(testModule.app.getHttpServer())
       .get('/set-cookie')
       .expect(HttpStatus.OK)
-      .expect('set-cookie', /.*test=NestJS.*/);
+      .expect('set-cookie', /test=NestJS/);
 
     await request(testModule.app.getHttpServer())
       .get('/read-cookie')
@@ -148,8 +139,8 @@ describe('app.controller test', () => {
     await request(testModule.app.getHttpServer())
       .get('/health')
       .expect(HttpStatus.NO_CONTENT)
-      .expect('x-dns-prefetch-control', /.+?/)
-      .expect('x-frame-options', /.+?/);
+      .expect('x-dns-prefetch-control', /./)
+      .expect('x-frame-options', /./);
   });
 
   test('that the application returns the hardened security headers', async () => {
@@ -191,7 +182,7 @@ describe('app.controller test', () => {
   });
 
   test('that csp reports are accepted and answered with 204', async () => {
-    await request(testModule.app.getHttpServer())
+    const response = await request(testModule.app.getHttpServer())
       .post('/csp/reports')
       .set('Content-Type', 'application/csp-report')
       .send(
@@ -201,16 +192,16 @@ describe('app.controller test', () => {
             'document-uri': 'https://a.test/x?y=1',
           },
         }),
-      )
-      .expect(HttpStatus.NO_CONTENT);
+      );
+    expect(response.status).toBe(HttpStatus.NO_CONTENT);
   });
 
   test('that oversized csp reports are refused', async () => {
-    await request(testModule.app.getHttpServer())
+    const response = await request(testModule.app.getHttpServer())
       .post('/csp/reports')
       .set('Content-Type', 'application/reports+json')
-      .send('[' + '0,'.repeat(20000) + '0]')
-      .expect(HttpStatus.PAYLOAD_TOO_LARGE);
+      .send('[' + '0,'.repeat(20_000) + '0]');
+    expect(response.status).toBe(HttpStatus.PAYLOAD_TOO_LARGE);
   });
 
   test('that the application returns the cross-origin headers', async () => {
@@ -251,6 +242,7 @@ describe('app.controller test', () => {
       .then((response) => {
         expect(response.text).toContain('User-agent: *');
         expect(response.text).toContain('Disallow: /');
+        return response;
       });
   });
 
@@ -261,6 +253,7 @@ describe('app.controller test', () => {
       .expect(HttpStatus.OK)
       .then((response) => {
         expect(response.body.toString()).toMatch(/<svg.*?svg>/);
+        return response;
       });
   });
 
@@ -280,6 +273,7 @@ describe('app.controller test', () => {
           http: { request: { method: 'GET' }, version: '1.1' },
           faas: { trigger: { type: 'http' } },
         });
+        return response;
       });
   });
 });

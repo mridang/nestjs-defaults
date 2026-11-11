@@ -1,3 +1,6 @@
+/**
+ * @file Interceptor that caches anonymous GET responses for configured paths in the Workers Cache API.
+ */
 import {
   CallHandler,
   ExecutionContext,
@@ -15,8 +18,16 @@ import { workerEnv, type WorkerEnv } from './env.js';
 /** Used when the app gave the page no Cache-Control of its own. */
 const DEFAULT_CACHE_CONTROL = 'public, max-age=300';
 
-/** Responses worth keeping: the page, image or feed itself, never an error. */
-const KEPT_BODY = (body: unknown): body is string | Uint8Array =>
+/**
+ * Tells whether a response body is worth keeping: the page, image or feed itself, never an error.
+ * @param body - The response body produced by the handler.
+ * @returns True when the body is a string or a byte array.
+ * @example
+ * ```ts
+ * isKeptBody('<html></html>'); // true
+ * ```
+ */
+const isKeptBody = (body: unknown): body is string | Uint8Array =>
   typeof body === 'string' || body instanceof Uint8Array;
 
 /** Where kept copies live and how a release is told apart. */
@@ -27,14 +38,29 @@ export interface EdgeCacheSources {
   env?: () => Promise<WorkerEnv | undefined>;
 }
 
+/**
+ * Looks up the Workers Cache API default cache, when the runtime provides one.
+ * @returns The default cache, or undefined outside Cloudflare Workers.
+ * @example
+ * ```ts
+ * const cache = defaultCache();
+ * ```
+ */
 function defaultCache(): Cache | undefined {
   const store = Reflect.get(globalThis, 'caches') as
-    | { default?: Cache }
-    | undefined;
+    { default?: Cache } | undefined;
   return store?.default;
 }
 
-/** The deployed release, so a new deploy never serves an old copy. */
+/**
+ * Names the deployed release so a new deploy never serves an old copy.
+ * @param env - The Worker's bindings, or undefined outside Cloudflare Workers.
+ * @returns The release identifier, or `dev` when none is known.
+ * @example
+ * ```ts
+ * releaseOf({ SERVICE_VERSION: '1.4.0' }); // '1.4.0'
+ * ```
+ */
 function releaseOf(env: WorkerEnv | undefined): string {
   const metadata = env?.['CF_VERSION_METADATA'] as { id?: string } | undefined;
   const version = env?.['SERVICE_VERSION'];
@@ -46,6 +72,10 @@ function releaseOf(env: WorkerEnv | undefined): string {
  * API. Anything with a cookie, an authorization header or a query string is
  * left to the app, as is anything that sets a cookie. Copies are keyed by
  * release. With no Cache API (local development, tests) it does nothing.
+ * @example
+ * ```ts
+ * new EdgeCacheInterceptor(['/', '/feed.xml']);
+ * ```
  */
 @Injectable()
 export class EdgeCacheInterceptor implements NestInterceptor {
@@ -65,13 +95,13 @@ export class EdgeCacheInterceptor implements NestInterceptor {
     const res = context.switchToHttp().getResponse<ExpressResponse>();
     const cache = this.sources.cache();
     const url = req.originalUrl ?? req.url;
+    const anonymous =
+      !url.includes('?') && !req.get('cookie') && !req.get('authorization');
     if (
       cache === undefined ||
       req.method !== 'GET' ||
       !this.paths.has(req.path) ||
-      url.includes('?') ||
-      req.get('cookie') ||
-      req.get('authorization')
+      !anonymous
     ) {
       return next.handle();
     }
@@ -124,7 +154,7 @@ export class EdgeCacheInterceptor implements NestInterceptor {
     const cacheControl =
       typeof control === 'string' ? control : DEFAULT_CACHE_CONTROL;
     if (
-      KEPT_BODY(body) &&
+      isKeptBody(body) &&
       res.statusCode === 200 &&
       typeof type === 'string' &&
       !res.getHeader('Set-Cookie')

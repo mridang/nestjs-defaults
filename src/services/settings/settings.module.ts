@@ -1,3 +1,6 @@
+/**
+ * @file Nest module that exposes configuration settings loaded from a secrets source.
+ */
 import { Module, Global } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EnvSecretsSource, SecretsSource } from './source.js';
@@ -9,9 +12,13 @@ import { EnvSecretsSource, SecretsSource } from './source.js';
  * `crypto.randomUUID()` at module-definition time, a forbidden global-scope
  * operation on Cloudflare Workers that prevents the app from booting at the top
  * level.
- *
- * @param secrets The resolved secrets.
+ * @param secrets - The resolved secrets.
  * @returns A keyed configuration-load factory.
+ * @example
+ * ```ts
+ * const loader = stableConfigLoader({ API_KEY: 'value' });
+ * loader(); // { API_KEY: 'value' }
+ * ```
  */
 function stableConfigLoader(
   secrets: Record<string, string>,
@@ -31,11 +38,14 @@ function stableConfigLoader(
 @Module({})
 export class SettingsModule {
   /**
-   * Resolve secrets from the given source and register the configuration module.
-   *
-   * @param source Where secrets are loaded from. Defaults to the environment,
-   *   which is correct for Cloudflare Workers and local development.
+   * Resolves secrets from the given source and registers the configuration module.
+   * @param source - Where secrets are loaded from. Defaults to the environment,
+   * which is correct for Cloudflare Workers and local development.
    * @returns The configured dynamic module.
+   * @example
+   * ```ts
+   * imports: [await SettingsModule.register(new EnvSecretsSource())];
+   * ```
    */
   static async register(source: SecretsSource = new EnvSecretsSource()) {
     const secrets = await source.load();

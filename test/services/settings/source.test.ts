@@ -1,3 +1,6 @@
+/**
+ * @file Tests for the secrets sources, covering the environment source and AWS Secrets Manager parsing.
+ */
 import { expect, describe, test } from '@jest/globals';
 import {
   AwsSecretsManagerSource,

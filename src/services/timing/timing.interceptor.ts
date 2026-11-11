@@ -1,3 +1,6 @@
+/**
+ * @file Interceptor that measures handler duration and adds it to the Server-Timing header.
+ */
 import {
   CallHandler,
   ExecutionContext,
@@ -6,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
-import { AsyncLocalStorage } from 'async_hooks';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 const asyncLocalStorage = new AsyncLocalStorage();
 
@@ -29,13 +32,13 @@ export class TimingInterceptor implements NestInterceptor {
         finalize(() => {
           const executionTime = performance.now() - startTime;
 
-          const serverTimingHeader = Array.from(store.values())
-            .map(({ key, duration, description }) => {
+          const serverTimingHeader = [
+            ...[...store.values()].map(({ key, duration, description }) => {
               const descPart = description ? `;desc="${description}"` : '';
               return `${key};dur=${duration}${descPart}`;
-            })
-            .concat(`total;dur=${executionTime};desc="App Total"`)
-            .join(', ');
+            }),
+            `total;dur=${executionTime};desc="App Total"`,
+          ].join(', ');
 
           if (!response.headersSent) {
             response.setHeader('Server-Timing', serverTimingHeader);
@@ -46,6 +49,14 @@ export class TimingInterceptor implements NestInterceptor {
   }
 }
 
+/**
+ * Returns the timing map that belongs to the request currently being handled.
+ * @returns The Server-Timing entries for the current request, or undefined outside a request.
+ * @example
+ * ```ts
+ * getAsyncLocalStorage()?.set('db', { key: 'db', duration: 12 });
+ * ```
+ */
 export function getAsyncLocalStorage(): Map<string, Timing> {
   return asyncLocalStorage.getStore() as Map<string, Timing>;
 }

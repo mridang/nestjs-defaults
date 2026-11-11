@@ -1,3 +1,6 @@
+/**
+ * @file Per-address rate limiter used as Express-style middleware on every request.
+ */
 import type { NextFunction, Request, Response } from 'express';
 import { workerEnv, type WorkerEnv } from './env.js';
 
@@ -13,6 +16,7 @@ export interface RateLimitOptions {
    * `limit = 300`, `period = 60` suits a small app. Default `RL_SITE`.
    */
   binding?: string;
+
   /**
    * Paths (and everything below them) that are never counted. GitHub delivers
    * webhooks in bursts from a few addresses, so `/hook` is exempt by default;
@@ -26,6 +30,15 @@ export interface RateLimitOptions {
 const DEFAULT_EXEMPT: readonly string[] = ['/hook'];
 const RETRY_AFTER_SECONDS = 60;
 
+/**
+ * Tells whether a value is a Workers Rate Limiting binding, which has a `limit` function.
+ * @param value - The value taken from the Worker's bindings.
+ * @returns True when the value exposes a `limit` function.
+ * @example
+ * ```ts
+ * isBinding(env.RL_SITE); // true when the binding is configured
+ * ```
+ */
 function isBinding(value: unknown): value is RateLimitBinding {
   return (
     typeof value === 'object' &&
@@ -34,6 +47,16 @@ function isBinding(value: unknown): value is RateLimitBinding {
   );
 }
 
+/**
+ * Tells whether a request path falls under one of the exempt prefixes.
+ * @param path - The request path, such as `/hook/github`.
+ * @param exempt - The exempt path prefixes.
+ * @returns True when the path equals a prefix or sits below it.
+ * @example
+ * ```ts
+ * isExempt('/hook/github', ['/hook']); // true
+ * ```
+ */
 function isExempt(path: string, exempt: readonly string[]): boolean {
   return exempt.some(
     (prefix) => path === prefix || path.startsWith(`${prefix}/`),
@@ -44,6 +67,12 @@ function isExempt(path: string, exempt: readonly string[]): boolean {
  * Express-style middleware that refuses callers over the per-address limit
  * with a 429. It fails open: with no binding (local development, tests) or a
  * binding that throws, the request goes through.
+ * @param options - Binding name, exempt paths and the source of bindings.
+ * @returns The Express-style middleware function.
+ * @example
+ * ```ts
+ * app.use(createRateLimiter({ binding: 'RL_SITE', exempt: ['/hook'] }));
+ * ```
  */
 export function createRateLimiter(options: RateLimitOptions = {}) {
   const name = options.binding ?? 'RL_SITE';
@@ -54,21 +83,23 @@ export function createRateLimiter(options: RateLimitOptions = {}) {
     if (req.method === 'OPTIONS' || isExempt(req.path, exempt)) {
       return next();
     }
-    const binding = (await getEnv())?.[name];
+    const env = await getEnv();
+    const binding = env?.[name];
     if (!isBinding(binding)) {
       return next();
     }
     const address = req.get('cf-connecting-ip') ?? req.ip ?? 'unknown';
     let allowed = true;
     try {
-      allowed = (await binding.limit({ key: `a:${address}` })).success;
+      const result = await binding.limit({ key: `a:${address}` });
+      allowed = result.success;
     } catch {
       allowed = true;
     }
     if (allowed) {
       return next();
     }
-    res
+    return res
       .status(429)
       .set({
         'Retry-After': String(RETRY_AFTER_SECONDS),

@@ -1,3 +1,6 @@
+/**
+ * @file Nest module that provides the core runtime implementations of fetch and crypto.
+ */
 import { Module, Global } from '@nestjs/common';
 import { CryptoImpl, FetchImpl } from './types.js';
 
@@ -10,7 +13,7 @@ import { CryptoImpl, FetchImpl } from './types.js';
     },
     {
       provide: CryptoImpl,
-      useValue: crypto,
+      useValue: Reflect.get(globalThis, 'crypto'),
     },
   ],
   exports: [FetchImpl, CryptoImpl],

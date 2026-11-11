@@ -1,3 +1,6 @@
+/**
+ * @file Tests for the Sentry module, covering reporter selection from configuration.
+ */
 import { expect, describe, test } from '@jest/globals';
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
@@ -9,8 +12,14 @@ import {
 } from '../../../src/services/sentry/reporter';
 
 /**
- * Compile {@link SentryModule} with the given configuration values exposed
+ * Compiles {@link SentryModule} with the given configuration values exposed
  * through a global {@link ConfigModule}.
+ * @param config - The configuration values to expose.
+ * @returns The compiled testing module.
+ * @example
+ * ```ts
+ * const moduleRef = await compile({ SENTRY_ENABLED: false });
+ * ```
  */
 async function compile(config: Record<string, unknown>) {
   return Test.createTestingModule({
