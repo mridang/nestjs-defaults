@@ -3,7 +3,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'node:path';
 
 /**
- * Placeholder used when static-asset serving is disabled (e.g. on Cloudflare
+ * Placeholder used when static-asset serving is disabled (e.g. On Cloudflare
  * Workers, where assets are served by the Workers `assets` binding rather than
  * by `@nestjs/serve-static`, which reads from the local filesystem).
  */

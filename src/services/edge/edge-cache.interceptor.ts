@@ -29,8 +29,7 @@ export interface EdgeCacheSources {
 
 function defaultCache(): Cache | undefined {
   const store = Reflect.get(globalThis, 'caches') as
-    | { default?: Cache }
-    | undefined;
+    { default?: Cache } | undefined;
   return store?.default;
 }
 

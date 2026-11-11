@@ -13,6 +13,7 @@ export interface RateLimitOptions {
    * `limit = 300`, `period = 60` suits a small app. Default `RL_SITE`.
    */
   binding?: string;
+
   /**
    * Paths (and everything below them) that are never counted. GitHub delivers
    * webhooks in bursts from a few addresses, so `/hook` is exempt by default;

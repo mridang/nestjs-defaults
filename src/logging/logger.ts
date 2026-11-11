@@ -63,10 +63,10 @@ const DEFAULT_CONTEXT = 'Application';
 @Injectable()
 export class BetterLogger implements LoggerService {
   /**
-   * @param clsService Request-scoped store holding the per-request ECS context.
-   * @param strategy The runtime's logging strategy; auto-selected when unbound.
-   * @param logLevels The enabled log levels; mutated only by
-   *   {@link BetterLogger.setLogLevels}, which NestJS calls during bootstrap.
+   * @param clsService - Request-scoped store holding the per-request ECS context.
+   * @param strategy - The runtime's logging strategy; auto-selected when unbound.
+   * @param logLevels - The enabled log levels; mutated only by
+   * {@link BetterLogger.setLogLevels}, which NestJS calls during bootstrap.
    */
   constructor(
     private readonly clsService: ClsService,
@@ -79,9 +79,8 @@ export class BetterLogger implements LoggerService {
 
   /**
    * Write a log-level (`info`) entry.
-   *
-   * @param message The log message.
-   * @param optionalParams A trailing context string and/or an `Error`.
+   * @param message - The log message.
+   * @param optionalParams - A trailing context string and/or an `Error`.
    */
   log(message: unknown, ...optionalParams: unknown[]): void {
     this.write('log', message, optionalParams);
@@ -89,9 +88,8 @@ export class BetterLogger implements LoggerService {
 
   /**
    * Write an error-level entry.
-   *
-   * @param message The log message.
-   * @param optionalParams A trailing context string and/or an `Error`.
+   * @param message - The log message.
+   * @param optionalParams - A trailing context string and/or an `Error`.
    */
   error(message: unknown, ...optionalParams: unknown[]): void {
     this.write('error', message, optionalParams);
@@ -99,9 +97,8 @@ export class BetterLogger implements LoggerService {
 
   /**
    * Write a warn-level entry.
-   *
-   * @param message The log message.
-   * @param optionalParams A trailing context string and/or an `Error`.
+   * @param message - The log message.
+   * @param optionalParams - A trailing context string and/or an `Error`.
    */
   warn(message: unknown, ...optionalParams: unknown[]): void {
     this.write('warn', message, optionalParams);
@@ -109,9 +106,8 @@ export class BetterLogger implements LoggerService {
 
   /**
    * Write a debug-level entry.
-   *
-   * @param message The log message.
-   * @param optionalParams A trailing context string and/or an `Error`.
+   * @param message - The log message.
+   * @param optionalParams - A trailing context string and/or an `Error`.
    */
   debug(message: unknown, ...optionalParams: unknown[]): void {
     this.write('debug', message, optionalParams);
@@ -119,9 +115,8 @@ export class BetterLogger implements LoggerService {
 
   /**
    * Write a verbose-level (`trace`) entry.
-   *
-   * @param message The log message.
-   * @param optionalParams A trailing context string and/or an `Error`.
+   * @param message - The log message.
+   * @param optionalParams - A trailing context string and/or an `Error`.
    */
   verbose(message: unknown, ...optionalParams: unknown[]): void {
     this.write('verbose', message, optionalParams);
@@ -129,9 +124,8 @@ export class BetterLogger implements LoggerService {
 
   /**
    * Write a fatal-level entry.
-   *
-   * @param message The log message.
-   * @param optionalParams A trailing context string and/or an `Error`.
+   * @param message - The log message.
+   * @param optionalParams - A trailing context string and/or an `Error`.
    */
   fatal(message: unknown, ...optionalParams: unknown[]): void {
     this.write('fatal', message, optionalParams);
@@ -139,8 +133,7 @@ export class BetterLogger implements LoggerService {
 
   /**
    * Replace the set of enabled log levels.
-   *
-   * @param levels The levels to enable.
+   * @param levels - The levels to enable.
    */
   setLogLevels(levels: LogLevel[]): void {
     this.logLevels = levels;
@@ -148,8 +141,7 @@ export class BetterLogger implements LoggerService {
 
   /**
    * Report whether a level is currently enabled.
-   *
-   * @param level The level to test.
+   * @param level - The level to test.
    * @returns `true` when the level is enabled.
    */
   isLevelEnabled(level: LogLevel): boolean {
@@ -158,10 +150,9 @@ export class BetterLogger implements LoggerService {
 
   /**
    * Assemble and emit one document, unless the level is disabled.
-   *
-   * @param level The NestJS level of the call.
-   * @param message The log message.
-   * @param optionalParams The trailing parameters to interpret.
+   * @param level - The NestJS level of the call.
+   * @param message - The log message.
+   * @param optionalParams - The trailing parameters to interpret.
    */
   private write(
     level: LogLevel,
@@ -178,11 +169,10 @@ export class BetterLogger implements LoggerService {
   /**
    * Assemble a complete ECS document from the resource, request context, and
    * the fields of a single call.
-   *
-   * @param level The NestJS level of the call.
-   * @param message The log message.
-   * @param context The originating logger context.
-   * @param error The shaped error, when one was supplied.
+   * @param level - The NestJS level of the call.
+   * @param message - The log message.
+   * @param context - The originating logger context.
+   * @param error - The shaped error, when one was supplied.
    * @returns The complete ECS document.
    */
   private buildEntry(
@@ -206,8 +196,7 @@ export class BetterLogger implements LoggerService {
 
   /**
    * Pull the optional context string and `Error` out of the trailing params.
-   *
-   * @param optionalParams The trailing parameters of a log call.
+   * @param optionalParams - The trailing parameters of a log call.
    * @returns The resolved context and shaped error.
    */
   private interpret(optionalParams: unknown[]): {
@@ -216,7 +205,7 @@ export class BetterLogger implements LoggerService {
   } {
     const error = optionalParams.find((param) => param instanceof Error);
     const rest = optionalParams.filter((param) => !(param instanceof Error));
-    const last = rest[rest.length - 1];
+    const last = rest.at(-1);
     return {
       context: typeof last === 'string' ? last : DEFAULT_CONTEXT,
       error: error instanceof Error ? this.toEcsError(error) : undefined,
@@ -225,8 +214,7 @@ export class BetterLogger implements LoggerService {
 
   /**
    * Shape a JavaScript `Error` into ECS `error.*` fields.
-   *
-   * @param error The error to shape.
+   * @param error - The error to shape.
    * @returns The ECS `error` fields.
    */
   private toEcsError(error: Error): EcsErrorFields {

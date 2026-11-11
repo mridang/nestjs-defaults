@@ -9,8 +9,7 @@ import { EnvSecretsSource, SecretsSource } from './source.js';
  * `crypto.randomUUID()` at module-definition time, a forbidden global-scope
  * operation on Cloudflare Workers that prevents the app from booting at the top
  * level.
- *
- * @param secrets The resolved secrets.
+ * @param secrets - The resolved secrets.
  * @returns A keyed configuration-load factory.
  */
 function stableConfigLoader(
@@ -32,9 +31,8 @@ function stableConfigLoader(
 export class SettingsModule {
   /**
    * Resolve secrets from the given source and register the configuration module.
-   *
-   * @param source Where secrets are loaded from. Defaults to the environment,
-   *   which is correct for Cloudflare Workers and local development.
+   * @param source - Where secrets are loaded from. Defaults to the environment,
+   * which is correct for Cloudflare Workers and local development.
    * @returns The configured dynamic module.
    */
   static async register(source: SecretsSource = new EnvSecretsSource()) {

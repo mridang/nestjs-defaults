@@ -1,5 +1,3 @@
-/* eslint-disable tailwindcss/no-custom-classname */
-
 import { FunctionalComponent } from 'preact';
 import { HttpStatus } from '@nestjs/common';
 import { render } from 'preact-render-to-string';

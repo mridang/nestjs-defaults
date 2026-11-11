@@ -64,8 +64,7 @@ export interface LogStrategy {
 
 /**
  * Build the `service` fields common to every runtime from the environment.
- *
- * @param env The process environment to read service identity from.
+ * @param env - The process environment to read service identity from.
  * @returns The `service` portion of an ECS document.
  */
 function buildService(
@@ -89,8 +88,7 @@ function buildService(
  * the misleading placeholder values the `node:os` polyfill returns. Per-request
  * geography (`cloud.region` from the serving colo) is added by the request
  * middleware, not here.
- *
- * @param env The process environment to read service identity from.
+ * @param env - The process environment to read service identity from.
  * @returns The resource-level ECS fields for a Worker.
  */
 function buildCloudflareResource(
@@ -111,9 +109,8 @@ function buildCloudflareResource(
  * The host is real here, so `host.*` (including `host.os.*`) is populated, and
  * cloud metadata is read from the provider-neutral `CLOUD_*` environment
  * variables the deployment sets.
- *
- * @param env The process environment to read identity and cloud metadata from.
- * @param host The host information source.
+ * @param env - The process environment to read identity and cloud metadata from.
+ * @param host - The host information source.
  * @returns The resource-level ECS fields for a Node runtime.
  */
 function buildNodeResource(
@@ -165,8 +162,7 @@ export interface SelectStrategyOptions {
  * Selection is by capability, never by cloud-provider name: a Worker logs
  * structured objects to `console`; a production Node process writes JSON lines
  * to stdout; any other Node process gets a human-readable line.
- *
- * @param options Overrides for environment, host, and runtime detection.
+ * @param options - Overrides for environment, host, and runtime detection.
  * @returns The strategy to log with.
  */
 export function selectStrategy(

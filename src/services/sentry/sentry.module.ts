@@ -21,7 +21,6 @@ import { SentryInterceptor } from './sentry.interceptor.js';
 export class SentryModule {
   /**
    * Build the module, reading Sentry configuration from {@link ConfigService}.
-   *
    * @returns The configured dynamic module.
    */
   static forRoot(): DynamicModule {

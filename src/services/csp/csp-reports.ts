@@ -57,7 +57,7 @@ function short(value: unknown, limit: number): string {
       return code < 32 || code === 127 ? ' ' : char;
     })
     .join('');
-  return printable.replace(/\s+/g, ' ').trim().slice(0, limit);
+  return printable.replaceAll(/\s+/g, ' ').trim().slice(0, limit);
 }
 
 /** The first of `keys` in `body` that holds text. */
@@ -67,8 +67,7 @@ function field(
 ): string {
   return (
     (keys.map((key) => body[key]).find((v) => typeof v === 'string') as
-      | string
-      | undefined) ?? ''
+      string | undefined) ?? ''
   );
 }
 
@@ -155,9 +154,9 @@ export function summariseReports(body: unknown): readonly ReportSummary[] {
           ? [[short(entry['type'], 40), entry['body']]]
           : [],
       )
-    : isRecord(body) && isRecord(body['csp-report'])
+    : (isRecord(body) && isRecord(body['csp-report'])
       ? [['csp-violation', body['csp-report']]]
-      : [];
+      : []);
   return entries
     .slice(0, MAX_REPORTS_PER_REQUEST)
     .filter(([, report]) => !fromExtension(report))

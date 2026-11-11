@@ -51,7 +51,7 @@ export class CustomHttpExceptionFilter implements ExceptionFilter {
 
   /**
    * Checks if the thrown error comes from the "http-errors" library.
-   * @param err error object
+   * @param err - Error object.
    */
   /* eslint-disable @typescript-eslint/no-explicit-any */
   private static isHttpError(

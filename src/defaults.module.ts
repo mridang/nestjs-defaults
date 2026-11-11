@@ -21,18 +21,21 @@ export interface DefaultsOptions {
    * local development; pass an {@link AwsSecretsManagerSource} to load from AWS.
    */
   secrets?: SecretsSource;
+
   /**
    * Serve `public/` at `/static` via `@nestjs/serve-static`. Default true.
    * Set false on runtimes without a local filesystem (e.g. Cloudflare Workers,
    * where the Workers `assets` binding serves static files instead).
    */
   assets?: boolean;
+
   /**
    * Enable Sentry insights. Default true. Sentry self-disables when no
    * `SENTRY_DSN` is configured; the SDK for the active runtime is loaded only
    * when a DSN is present, so this rarely needs to be set false.
    */
   sentry?: boolean;
+
   /**
    * Paths (exact, no query) whose anonymous GET responses are kept in the
    * Workers Cache API, keyed by release. Default none. Requests carrying a

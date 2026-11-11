@@ -23,7 +23,7 @@ import type { SentryReporter } from './reporter.js';
 @Injectable()
 export class SentryInterceptor implements NestInterceptor {
   /**
-   * @param reporter The reporter errors are forwarded to.
+   * @param reporter - The reporter errors are forwarded to.
    */
   constructor(
     @Inject(SENTRY_REPORTER) private readonly reporter: SentryReporter,
@@ -50,8 +50,7 @@ export class SentryInterceptor implements NestInterceptor {
 
   /**
    * Decide whether an error warrants reporting.
-   *
-   * @param error The error thrown downstream.
+   * @param error - The error thrown downstream.
    * @returns True for non-HTTP errors and HTTP 5xx responses.
    */
   private static shouldReport(error: unknown): boolean {

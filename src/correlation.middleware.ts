@@ -61,7 +61,6 @@ let warm = false;
  *
  * This is the single piece of mutable state the request context needs:
  * cold-start status is, by definition, a fact about previous invocations.
- *
  * @returns `true` only for the first request after the isolate starts.
  */
 function consumeColdStart(): boolean {
@@ -74,8 +73,7 @@ function consumeColdStart(): boolean {
 
 /**
  * Parse a Cloudflare TLS version string such as `'TLSv1.3'` into `'1.3'`.
- *
- * @param tlsVersion The Cloudflare TLS version string.
+ * @param tlsVersion - The Cloudflare TLS version string.
  * @returns The bare version number, or `undefined` when not parseable.
  */
 function parseTlsVersion(tlsVersion?: string): string | undefined {
@@ -84,8 +82,7 @@ function parseTlsVersion(tlsVersion?: string): string | undefined {
 
 /**
  * Map Cloudflare edge metadata onto the ECS fields it corresponds to.
- *
- * @param cf The Cloudflare request metadata.
+ * @param cf - The Cloudflare request metadata.
  * @returns The ECS fields derived from the edge metadata.
  */
 function mapEdgeMetadata(cf: CloudflareProperties): Partial<Ecs> {
@@ -132,16 +129,15 @@ export class RequestIdMiddleware implements NestMiddleware {
   private readonly uaCache = new Map<string, UAParser.IResult>();
 
   /**
-   * @param clsService The request-scoped store the context is written to.
+   * @param clsService - The request-scoped store the context is written to.
    */
   constructor(private readonly clsService: ClsService) {}
 
   /**
    * Assemble the ECS request context and store it for the duration of the call.
-   *
-   * @param req The incoming request.
-   * @param _res The outgoing response (unused).
-   * @param next The next handler in the chain.
+   * @param req - The incoming request.
+   * @param _res - The outgoing response (unused).
+   * @param next - The next handler in the chain.
    */
   use(req: EdgeRequest, _res: Response, next: NextFunction): void {
     const userAgent = req.headers['user-agent'] ?? '';
@@ -191,8 +187,7 @@ export class RequestIdMiddleware implements NestMiddleware {
 
   /**
    * Parse a user-agent string, caching results to avoid reparsing repeats.
-   *
-   * @param userAgent The raw user-agent header value.
+   * @param userAgent - The raw user-agent header value.
    * @returns The parsed user-agent result.
    */
   private parseUserAgent(userAgent: string): UAParser.IResult {
@@ -207,8 +202,7 @@ export class RequestIdMiddleware implements NestMiddleware {
 
   /**
    * Coerce a possibly-array header value to its first string.
-   *
-   * @param value The header value.
+   * @param value - The header value.
    * @returns The first string value, or `undefined`.
    */
   private firstHeader(
@@ -219,8 +213,7 @@ export class RequestIdMiddleware implements NestMiddleware {
 
   /**
    * Parse a numeric header value.
-   *
-   * @param value The header value.
+   * @param value - The header value.
    * @returns The parsed number, or `undefined` when absent or invalid.
    */
   private toNumber(value: string | string[] | undefined): number | undefined {

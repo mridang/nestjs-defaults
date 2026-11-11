@@ -8,7 +8,6 @@
 export interface SecretsSource {
   /**
    * Resolve the secrets as a flat key/value map.
-   *
    * @returns The resolved secrets.
    */
   load(): Promise<Record<string, string>>;
@@ -51,21 +50,18 @@ interface SecretsManagerSdk {
 /**
  * Load the AWS Secrets Manager SDK lazily, so the package only requires
  * `@aws-sdk/client-secrets-manager` when this source is actually used.
- *
  * @returns The Secrets Manager SDK.
  */
 const loadSecretsManager = (): Promise<SecretsManagerSdk> =>
-  import(
-    '@aws-sdk/client-secrets-manager'
-  ) as unknown as Promise<SecretsManagerSdk>;
+  import('@aws-sdk/client-secrets-manager') as unknown as Promise<SecretsManagerSdk>;
 
 /**
  * Secrets source that loads a JSON secret bundle from AWS Secrets Manager.
  */
 export class AwsSecretsManagerSource implements SecretsSource {
   /**
-   * @param secretId The identifier of the secret to load.
-   * @param loadSdk Loader for the AWS SDK; defaults to a lazy dynamic import.
+   * @param secretId - The identifier of the secret to load.
+   * @param loadSdk - Loader for the AWS SDK; defaults to a lazy dynamic import.
    */
   constructor(
     private readonly secretId: string,
@@ -74,7 +70,6 @@ export class AwsSecretsManagerSource implements SecretsSource {
 
   /**
    * Fetch and parse the secret bundle from AWS Secrets Manager.
-   *
    * @returns The secret key/value pairs.
    */
   async load(): Promise<Record<string, string>> {
@@ -91,8 +86,7 @@ export class AwsSecretsManagerSource implements SecretsSource {
 
   /**
    * Parse a Secrets Manager response into a key/value map.
-   *
-   * @param data The Secrets Manager response.
+   * @param data - The Secrets Manager response.
    * @returns The parsed secret key/value pairs.
    */
   static parse(data: SecretValue): Record<string, string> {

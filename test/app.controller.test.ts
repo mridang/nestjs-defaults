@@ -209,7 +209,7 @@ describe('app.controller test', () => {
     await request(testModule.app.getHttpServer())
       .post('/csp/reports')
       .set('Content-Type', 'application/reports+json')
-      .send('[' + '0,'.repeat(20000) + '0]')
+      .send('[' + '0,'.repeat(20_000) + '0]')
       .expect(HttpStatus.PAYLOAD_TOO_LARGE);
   });
 

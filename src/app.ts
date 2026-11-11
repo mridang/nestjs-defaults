@@ -1,7 +1,7 @@
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { CustomHttpExceptionFilter } from './services/errors/errors.filter.js';
 import cookieParser from 'cookie-parser';
-import { default as helm } from 'helmet';
+import helm from 'helmet';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { BetterLogger } from './logging/index.js';
@@ -24,7 +24,7 @@ export interface ConfigureOptions {
 
 /**
  * An Express-style middleware function `(req, res, next) => void`. Handlers that
- * omit `next` (e.g. the robots.txt responder) remain assignable to this.
+ * omit `next` (e.g. The robots.txt responder) remain assignable to this.
  */
 type ExpressMiddleware = (
   req: Request,
@@ -53,8 +53,7 @@ function getExpressMiddlewareAdapter(
   nestApp: NestExpressApplication,
 ): ExpressMiddlewareAdapter | undefined {
   const adapter = nestApp.getHttpAdapter() as unknown as
-    | Partial<ExpressMiddlewareAdapter>
-    | undefined;
+    Partial<ExpressMiddlewareAdapter> | undefined;
   return typeof adapter?.useExpressMiddleware === 'function'
     ? (adapter as ExpressMiddlewareAdapter)
     : undefined;
@@ -107,7 +106,7 @@ export default function configure(
   mount(
     helm({
       strictTransportSecurity: {
-        maxAge: 63072000,
+        maxAge: 63_072_000,
         includeSubDomains: true,
         preload: true,
       },

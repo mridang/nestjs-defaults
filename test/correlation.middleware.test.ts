@@ -82,7 +82,7 @@ describe('RequestIdMiddleware', () => {
       longitude: '-97.74260',
       postalCode: '78701',
       timezone: 'America/Chicago',
-      asn: 395747,
+      asn: 395_747,
       asOrganization: 'Cloudflare, Inc.',
       tlsVersion: 'TLSv1.3',
       tlsCipher: 'AEAD-AES128-GCM-SHA256',
@@ -105,7 +105,7 @@ describe('RequestIdMiddleware', () => {
           timezone: 'America/Chicago',
           location: { lat: 30.2713, lon: -97.7426 },
         },
-        as: { number: 395747, organization: { name: 'Cloudflare, Inc.' } },
+        as: { number: 395_747, organization: { name: 'Cloudflare, Inc.' } },
       },
       tls: {
         version: '1.3',
