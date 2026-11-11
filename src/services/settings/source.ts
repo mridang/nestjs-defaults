@@ -70,7 +70,7 @@ interface SecretsManagerSdk {
  * ```
  */
 const loadSecretsManager = (): Promise<SecretsManagerSdk> =>
-  import('@aws-sdk/client-secrets-manager') as unknown as Promise<SecretsManagerSdk>;
+  import('@aws-sdk/client-secrets-manager');
 
 /**
  * Secrets source that loads a JSON secret bundle from AWS Secrets Manager.
