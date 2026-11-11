@@ -68,9 +68,7 @@ class DynamicController {
 
 const testModule = new End2EndModule({
   imports: [
-    DefaultsModule.register({
-      configName: 'moo',
-    }),
+    DefaultsModule.register({}),
     {
       module: DefaultsModule,
       controllers: [DynamicController],
