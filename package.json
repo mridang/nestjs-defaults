@@ -5,10 +5,10 @@
     "build": "tsc",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "npx eslint .",
-    "lint:fix": "npx eslint . --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "prepack": "tsc",
-    "start": "npx nest start",
+    "start": "nest start",
     "test": "jest --verbose --config=jest.config.mjs",
     "test:debug": "jest --verbose --config=jest.config.mjs --detectOpenHandles",
     "test:watch": "npm run test -- --watch"
