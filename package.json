@@ -127,7 +127,7 @@
     "rxjs": "^7.8.2",
     "ua-parser-js": "^1.0.39"
   },
-  "version": "3.2.1",
+  "version": "3.2.2",
   "overrides": {
     "@eslint/core": "1.2.1"
   }
