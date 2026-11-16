@@ -1,6 +1,7 @@
 /**
  * @file Middleware that sets the security headers and the Content-Security-Policy on every response.
  */
+// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
 import type { NextFunction, Request, Response } from 'express';
 
 /** Where browsers send Content Security Policy violation reports. */

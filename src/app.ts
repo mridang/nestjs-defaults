@@ -6,8 +6,10 @@ import { CustomHttpExceptionFilter } from './services/errors/errors.filter.js';
 import cookieParser from 'cookie-parser';
 import helm from 'helmet';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
+// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only or supplies the middleware types; h3 does not provide these types, so the swap is not a drop-in
 import { NextFunction, Request, Response } from 'express';
 import { BetterLogger } from './logging/index.js';
+// eslint-disable-next-line e18e/ban-dependencies -- body-parser is the Express middleware this library mounts on the Nest app; milliparsec parses differently, so the swap is not a drop-in
 import bodyParser from 'body-parser';
 import {
   createRateLimiter,

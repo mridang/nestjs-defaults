@@ -33,7 +33,7 @@ export class TimingInterceptor implements NestInterceptor {
           const executionTime = performance.now() - startTime;
 
           const serverTimingHeader = [
-            ...[...store.values()].map(({ key, duration, description }) => {
+            ...Array.from(store.values(), ({ key, duration, description }) => {
               const descPart = description ? `;desc="${description}"` : '';
               return `${key};dur=${duration}${descPart}`;
             }),

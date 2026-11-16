@@ -7,6 +7,9 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import { VersionModule } from '../../../src/services/version/version.module';
 
+/** Matches an inline SVG document. */
+const SVG_PATTERN = /<svg.*?svg>/;
+
 describe('version.e2e test', () => {
   let testModule: NestExpressApplication;
 
@@ -33,7 +36,7 @@ describe('version.e2e test', () => {
       .expect(HttpStatus.OK)
       .expect('Content-Type', 'image/svg+xml; charset=utf-8')
       .expect((response) => {
-        expect(response.body.toString()).toMatch(/<svg.*?svg>/);
+        expect(response.body.toString()).toMatch(SVG_PATTERN);
       });
   });
 });

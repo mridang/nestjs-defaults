@@ -8,6 +8,13 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import { setTimeout as sleep } from 'node:timers/promises';
 
+/** Matches the timeit and App Total server-timing header. */
+const TIMEIT_SERVER_TIMING_PATTERN =
+  /^timeit;dur=\d+\.\d+, total;dur=\d+\.\d+;desc="App Total"$/;
+
+/** Matches the App Total server-timing header alone. */
+const TOTAL_SERVER_TIMING_PATTERN = /^total;dur=0\.\d+;desc="App Total"$/;
+
 @Controller()
 class DynamicController {
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -64,26 +71,20 @@ describe('timing.e2e test', () => {
     return request(testModule.getHttpServer())
       .get('/decorated')
       .expect(HttpStatus.NO_CONTENT)
-      .expect(
-        'server-timing',
-        /^timeit;dur=\d+\.\d+, total;dur=\d+\.\d+;desc="App Total"$/,
-      );
+      .expect('server-timing', TIMEIT_SERVER_TIMING_PATTERN);
   });
 
   test('that the timing results are returned when not decorated', () => {
     return request(testModule.getHttpServer())
       .get('/undecorated')
       .expect(HttpStatus.NO_CONTENT)
-      .expect('server-timing', /^total;dur=0\.\d+;desc="App Total"$/);
+      .expect('server-timing', TOTAL_SERVER_TIMING_PATTERN);
   });
 
   test('that the timing results are returned when upon errors', () => {
     return request(testModule.getHttpServer())
       .get('/erroneous')
       .expect(HttpStatus.INTERNAL_SERVER_ERROR)
-      .expect(
-        'server-timing',
-        /^timeit;dur=\d+\.\d+, total;dur=\d+\.\d+;desc="App Total"$/,
-      );
+      .expect('server-timing', TIMEIT_SERVER_TIMING_PATTERN);
   });
 });

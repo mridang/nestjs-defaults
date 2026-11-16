@@ -1,6 +1,7 @@
 /**
  * @file Per-address rate limiter used as Express-style middleware on every request.
  */
+// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
 import type { NextFunction, Request, Response } from 'express';
 import { workerEnv, type WorkerEnv } from './env.js';
 

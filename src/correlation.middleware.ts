@@ -2,11 +2,15 @@
  * @file Middleware that records request-scoped Elastic Common Schema context into CLS.
  */
 import { Injectable, NestMiddleware } from '@nestjs/common';
+// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only or supplies the middleware types; h3 does not provide these types, so the swap is not a drop-in
 import { NextFunction, Request, Response } from 'express';
 import { ClsService } from 'nestjs-cls';
 import type { Ecs } from '@elastic/ecs';
 import UAParser from 'ua-parser-js';
 import path from 'node:path';
+
+/** Matches the TLS protocol prefix of a version string. */
+const TLS_VERSION_PREFIX_PATTERN = /^TLSv/;
 
 /**
  * The subset of Cloudflare's `request.cf` metadata mapped onto ECS. Present
@@ -89,7 +93,7 @@ function consumeColdStart(): boolean {
  * ```
  */
 function parseTlsVersion(tlsVersion?: string): string | undefined {
-  return tlsVersion?.replace(/^TLSv/, '');
+  return tlsVersion?.replace(TLS_VERSION_PREFIX_PATTERN, '');
 }
 
 /**
