@@ -5,7 +5,7 @@ import { expect, describe, test } from '@jest/globals';
 import {
   AwsSecretsManagerSource,
   EnvSecretsSource,
-} from '../../../src/services/settings/source';
+} from '../../../src/services/settings/source.js';
 
 /** Matches the error message for a source that returns no data. */
 const NO_DATA_MESSAGE_PATTERN = /no string or binary data/;
@@ -25,9 +25,9 @@ describe('AwsSecretsManagerSource.load', () => {
     }
 
     class FakeClient {
-      send(command: object): Promise<{ SecretString: string }> {
+      async send(command: object): Promise<{ SecretString: string }> {
         sent.push((command as FakeCommand).input);
-        return Promise.resolve({ SecretString: '{"TOKEN":"abc"}' });
+        return { SecretString: '{"TOKEN":"abc"}' };
       }
     }
 

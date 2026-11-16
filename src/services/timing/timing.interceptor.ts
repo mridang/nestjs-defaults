@@ -9,6 +9,8 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
+// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
+import type { Response } from 'express';
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 const asyncLocalStorage = new AsyncLocalStorage();
@@ -23,7 +25,7 @@ type Timing = {
 export class TimingInterceptor implements NestInterceptor {
   intercept<T>(context: ExecutionContext, next: CallHandler<T>): Observable<T> {
     const startTime = performance.now();
-    const response = context.switchToHttp().getResponse();
+    const response = context.switchToHttp().getResponse<Response>();
 
     return asyncLocalStorage.run(new Map<string, Timing>(), () => {
       const store = asyncLocalStorage.getStore() as Map<string, Timing>;

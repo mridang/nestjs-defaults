@@ -1,6 +1,7 @@
 /**
  * @file Shared end-to-end harness that builds a Nest application with the defaults configured.
  */
+import type { Server } from 'node:http';
 import {
   type INestApplication,
   Logger,
@@ -8,9 +9,10 @@ import {
   type Provider,
   type Type,
 } from '@nestjs/common';
-import { type NestExpressApplication } from '@nestjs/platform-express';
-import { Test, TestingModuleBuilder } from '@nestjs/testing';
-import configure from '../src/app';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import type { TestingModuleBuilder } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+import configure from '../src/app.js';
 
 /** One entry in a module's imports, as Nest accepts them. */
 type ModuleImport = NonNullable<ModuleMetadata['imports']>[number];
@@ -56,6 +58,14 @@ export class End2EndModule {
     configure(nestApp);
     await nestApp.init();
     this.app = nestApp;
+  }
+
+  /**
+   * The HTTP server of the running application, typed for supertest.
+   * @returns The underlying Node HTTP server.
+   */
+  get server(): Server {
+    return this.app.getHttpServer() as Server;
   }
 
   async afterAll(): Promise<void> {

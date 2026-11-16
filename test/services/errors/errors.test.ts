@@ -1,6 +1,7 @@
 /**
  * @file End-to-end tests for the error filter, covering JSON and HTML error responses.
  */
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import request from 'supertest';
 import {
   Controller,
@@ -11,7 +12,7 @@ import {
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import { APP_FILTER } from '@nestjs/core';
-import { CustomHttpExceptionFilter } from '../../../src/services/errors';
+import { CustomHttpExceptionFilter } from '../../../src/services/errors/index.js';
 
 @Controller()
 class DynamicController {
@@ -40,7 +41,7 @@ describe('errors.e2e test', () => {
           rawBody: true,
         }),
       )
-      .then((nest) => nest.init());
+      .then(async (nest) => nest.init());
   });
 
   afterAll(async () => {

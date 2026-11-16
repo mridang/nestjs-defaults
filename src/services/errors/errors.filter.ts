@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces/index.js';
 // eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { isObject } from '@nestjs/common/utils/shared.utils.js';
 import showError from './error.js';
 
@@ -37,13 +37,14 @@ export class CustomHttpExceptionFilter implements ExceptionFilter {
   }
 
   private showError(status: number, ctx: HttpArgumentsHost) {
-    if (ctx.getRequest().headers.accept?.includes('text/html')) {
+    const request = ctx.getRequest<Request>();
+    if (request.headers.accept?.includes('text/html')) {
       ctx.getResponse<Response>().status(status).send(showError(status));
     } else {
       ctx.getResponse<Response>().status(status).json({
         statusCode: status,
         timestamp: new Date().toISOString(),
-        path: ctx.getRequest().url,
+        path: request.url,
       });
     }
   }

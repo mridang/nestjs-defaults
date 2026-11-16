@@ -2,12 +2,12 @@
  * @file Tests for the BetterLogger, covering ECS documents, levels, CLS context and errors.
  */
 import { expect, jest, describe, test, beforeEach } from '@jest/globals';
-import { LogLevel } from '@nestjs/common';
+import type { LogLevel } from '@nestjs/common';
 import type { Ecs } from '@elastic/ecs';
-import { ClsService } from 'nestjs-cls';
-import { BetterLogger } from '../../src/logging/logger';
-import { LogSink } from '../../src/logging/sink';
-import { LogStrategy } from '../../src/logging/strategy';
+import type { ClsService } from 'nestjs-cls';
+import { BetterLogger } from '../../src/logging/logger.js';
+import type { LogSink } from '../../src/logging/sink.js';
+import type { LogStrategy } from '../../src/logging/strategy.js';
 
 class CapturingSink implements LogSink {
   public readonly entries: Ecs[] = [];

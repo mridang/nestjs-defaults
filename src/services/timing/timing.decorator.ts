@@ -26,12 +26,15 @@ function serverTiming(key: string, description?: string) {
     propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
-    const originalMethod = descriptor.value;
+    const originalMethod = descriptor.value as (
+      this: unknown,
+      ...args: unknown[]
+    ) => unknown;
 
     class Timed {
       async timed(this: unknown, ...args: unknown[]) {
         const start = performance.now();
-        let result;
+        let result: unknown;
         try {
           result = await originalMethod.apply(this, args);
         } catch (error) {
@@ -54,7 +57,10 @@ function serverTiming(key: string, description?: string) {
         return result;
       }
     }
-    descriptor.value = Timed.prototype.timed;
+    descriptor.value = Reflect.get(
+      Timed.prototype,
+      'timed',
+    ) as typeof originalMethod;
 
     return descriptor;
   };

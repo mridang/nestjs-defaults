@@ -4,7 +4,7 @@
 import { describe, expect, jest, test } from '@jest/globals';
 import type { CallHandler, ExecutionContext } from '@nestjs/common';
 import { lastValueFrom, of } from 'rxjs';
-import { EdgeCacheInterceptor } from '../../../src/services/edge/edge-cache.interceptor';
+import { EdgeCacheInterceptor } from '../../../src/services/edge/edge-cache.interceptor.js';
 
 class MemoryCache {
   store = new Map<string, Response>();

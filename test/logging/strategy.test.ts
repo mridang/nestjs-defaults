@@ -2,12 +2,13 @@
  * @file Tests for the logging strategy selection and the resource fields each runtime produces.
  */
 import { expect, describe, test } from '@jest/globals';
-import { HostInfo, selectStrategy } from '../../src/logging/strategy';
+import type { HostInfo } from '../../src/logging/strategy.js';
+import { selectStrategy } from '../../src/logging/strategy.js';
 import {
   PrettyConsoleSink,
   StdoutJsonSink,
   StructuredConsoleSink,
-} from '../../src/logging/sink';
+} from '../../src/logging/sink.js';
 
 const host: HostInfo = {
   arch: () => 'arm64',

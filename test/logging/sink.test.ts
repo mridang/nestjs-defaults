@@ -7,7 +7,7 @@ import {
   PrettyConsoleSink,
   StdoutJsonSink,
   StructuredConsoleSink,
-} from '../../src/logging/sink';
+} from '../../src/logging/sink.js';
 
 const entry: Ecs = {
   ecs: { version: '9.4.0' },

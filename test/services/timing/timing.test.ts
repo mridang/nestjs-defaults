@@ -1,9 +1,13 @@
 /**
  * @file Tests for the server timing decorator and interceptor, checking the Server-Timing header.
  */
+import { afterAll, beforeAll, describe, test } from '@jest/globals';
 import request from 'supertest';
 import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
-import { TimingModule, ServerTiming } from './../../../src/services/timing';
+import {
+  TimingModule,
+  ServerTiming,
+} from './../../../src/services/timing/index.js';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -20,7 +24,7 @@ class DynamicController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Get('/decorated')
   async getSomeInvocation() {
-    return await this.doSomething();
+    return this.doSomething();
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -41,7 +45,7 @@ class DynamicController {
   }
 
   @ServerTiming('timeit')
-  doSomething(): Promise<void> {
+  async doSomething(): Promise<void> {
     return sleep(1000);
   }
 }
@@ -60,7 +64,7 @@ describe('timing.e2e test', () => {
           rawBody: true,
         }),
       )
-      .then((nest) => nest.init());
+      .then(async (nest) => nest.init());
   });
 
   afterAll(async () => {

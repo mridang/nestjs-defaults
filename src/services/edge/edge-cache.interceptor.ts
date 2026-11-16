@@ -63,8 +63,8 @@ function defaultCache(): Cache | undefined {
  * ```
  */
 function releaseOf(env: WorkerEnv | undefined): string {
-  const metadata = env?.['CF_VERSION_METADATA'] as { id?: string } | undefined;
-  const version = env?.['SERVICE_VERSION'];
+  const metadata = env?.CF_VERSION_METADATA as { id?: string } | undefined;
+  const version = env?.SERVICE_VERSION;
   return metadata?.id ?? (typeof version === 'string' ? version : 'dev');
 }
 

@@ -4,8 +4,8 @@
 import { readFile } from 'node:fs/promises';
 import { describe, expect, jest, test } from '@jest/globals';
 // eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
-import type { NextFunction, Request, Response } from 'express';
-import { createRateLimiter } from '../../../src/services/edge/rate-limit';
+import type { NextFunction, Request } from 'express';
+import { createRateLimiter } from '../../../src/services/edge/rate-limit.js';
 
 /** Signature of a Workers Rate Limiting binding's `limit` method. */
 type RateLimit = (options: { key: string }) => Promise<{ success: boolean }>;
@@ -75,7 +75,7 @@ async function run(
 ) {
   const res = aResponse();
   const next = jest.fn();
-  await limiter(req, res as unknown as Response, next as NextFunction);
+  await limiter(req, res, next as NextFunction);
   return { res, next };
 }
 

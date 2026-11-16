@@ -100,7 +100,7 @@ export class SdkSentryReporter implements SentryReporter {
     this.sentry.addBreadcrumb(breadcrumb);
   }
 
-  close(timeout?: number): Promise<boolean> {
+  async close(timeout?: number): Promise<boolean> {
     return this.sentry.close(timeout);
   }
 }
@@ -121,8 +121,8 @@ export class NoopSentryReporter implements SentryReporter {
     return undefined;
   }
 
-  close(): Promise<boolean> {
-    return Promise.resolve(true);
+  async close(): Promise<boolean> {
+    return true;
   }
 }
 
@@ -171,9 +171,8 @@ export interface SentrySdkLoaders {
  * The default loaders, importing the real SDKs only when invoked.
  */
 const DEFAULT_LOADERS: SentrySdkLoaders = {
-  loadCloudflare: () =>
-    import('@sentry/cloudflare') as unknown as Promise<SentryApi>,
-  loadNode: () => import('@sentry/node') as unknown as Promise<NodeSentryApi>,
+  loadCloudflare: async () => import('@sentry/cloudflare'),
+  loadNode: async () => import('@sentry/node'),
 };
 
 /**

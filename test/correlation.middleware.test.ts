@@ -5,8 +5,8 @@ import { expect, jest, describe, test } from '@jest/globals';
 // eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
 import type { Request, Response } from 'express';
 import type { Ecs } from '@elastic/ecs';
-import { ClsService } from 'nestjs-cls';
-import { RequestIdMiddleware } from '../src/correlation.middleware';
+import type { ClsService } from 'nestjs-cls';
+import { RequestIdMiddleware } from '../src/correlation.middleware.js';
 
 /**
  * Creates a fake CLS service that runs callbacks immediately and records writes.

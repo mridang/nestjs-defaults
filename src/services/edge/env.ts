@@ -22,7 +22,7 @@ let cached: Promise<WorkerEnv | undefined> | undefined;
  * const dsn = env?.SENTRY_DSN;
  * ```
  */
-export function workerEnv(): Promise<WorkerEnv | undefined> {
+export async function workerEnv(): Promise<WorkerEnv | undefined> {
   cached ??= (import(`cloudflare:workers`) as Promise<{ env: WorkerEnv }>)
     .then((workerModule) => workerModule.env)
     .catch(() => undefined);

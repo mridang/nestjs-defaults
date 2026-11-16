@@ -2,18 +2,15 @@
  * @file Tests for the Sentry interceptor, covering which errors are reported and the event header.
  */
 import { expect, describe, test, jest } from '@jest/globals';
+import type { CallHandler, ExecutionContext } from '@nestjs/common';
 import {
   BadRequestException,
-  CallHandler,
-  ExecutionContext,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { lastValueFrom, of, throwError } from 'rxjs';
-import { SentryInterceptor } from '../../../src/services/sentry/sentry.interceptor';
-import {
-  SentryReporter,
-  NoopSentryReporter,
-} from '../../../src/services/sentry/reporter';
+import { SentryInterceptor } from '../../../src/services/sentry/sentry.interceptor.js';
+import type { SentryReporter } from '../../../src/services/sentry/reporter.js';
+import { NoopSentryReporter } from '../../../src/services/sentry/reporter.js';
 
 /**
  * Drives the interceptor with a handler that throws the given error and counts the captures.
@@ -30,9 +27,9 @@ async function captureCountFor(error: unknown): Promise<number> {
   const interceptor = new SentryInterceptor(reporter);
   const next: CallHandler = { handle: () => throwError(() => error) };
 
-  await expect(
-    lastValueFrom(interceptor.intercept({} as ExecutionContext, next)),
-  ).rejects.toBe(error);
+  await expect(lastValueFrom(interceptor.intercept({}, next))).rejects.toBe(
+    error,
+  );
 
   return capture.mock.calls.length;
 }
@@ -77,9 +74,9 @@ describe('SentryInterceptor', () => {
     const interceptor = new SentryInterceptor(reporter);
     const next: CallHandler = { handle: () => of('ok') };
 
-    await expect(
-      lastValueFrom(interceptor.intercept({} as ExecutionContext, next)),
-    ).resolves.toBe('ok');
+    await expect(lastValueFrom(interceptor.intercept({}, next))).resolves.toBe(
+      'ok',
+    );
     expect(capture).not.toHaveBeenCalled();
   });
 });

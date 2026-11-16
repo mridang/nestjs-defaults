@@ -2,7 +2,7 @@
  * @file Tests for the CSP and Reporting API report summariser, covering formats and privacy cuts.
  */
 import { describe, expect, test } from '@jest/globals';
-import { summariseReports } from '../../../src/services/csp/csp-reports';
+import { summariseReports } from '../../../src/services/csp/csp-reports.js';
 
 describe('summariseReports', () => {
   test('reads the legacy csp-report format with paths only', () => {
