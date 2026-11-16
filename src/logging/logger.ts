@@ -230,8 +230,7 @@ export class BetterLogger implements LoggerService {
     context: string,
     error?: EcsErrorFields,
   ): Ecs {
-    const requestContext =
-      this.clsService.get<Partial<Ecs>>('ctx') ?? ({} as Partial<Ecs>);
+    const requestContext = this.clsService.get<Partial<Ecs>>('ctx') ?? {};
     return {
       ...this.strategy.resource,
       ...requestContext,

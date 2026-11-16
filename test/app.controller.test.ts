@@ -1,9 +1,9 @@
 /**
  * @file End-to-end tests of the default controller, error handling, headers, cookies, validation and the version badge.
  */
-import { expect } from '@jest/globals';
-import { End2EndModule } from './end-to-end.module';
-import { DefaultsModule } from '../src/defaults.module';
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
+import { End2EndModule } from './end-to-end.module.js';
+import { DefaultsModule } from '../src/defaults.module.js';
 import request from 'supertest';
 import {
   Body,
@@ -89,7 +89,10 @@ class DynamicController {
 
   @Get('read-cookie')
   readCookie(@Req() req: Request) {
-    return req.cookies['test'] || 'No cookie found';
+    return (
+      (req.cookies as Record<string, string | undefined>).test ||
+      'No cookie found'
+    );
   }
 
   @Post('validate')
@@ -99,7 +102,7 @@ class DynamicController {
 
   @Get('cls-ctx')
   getClsCtx() {
-    return this.clsService.get('ctx') || {};
+    return this.clsService.get<object | undefined>('ctx') || {};
   }
 }
 
@@ -124,14 +127,14 @@ describe('app.controller test', () => {
   });
 
   test('that the health-check endpoint is operational', () => {
-    return request(testModule.app.getHttpServer())
+    return request(testModule.server)
       .get('/health')
       .expect(HttpStatus.NO_CONTENT)
       .expect('');
   });
 
   test('that the error-handler handles http-400 errors', async () => {
-    const response = await request(testModule.app.getHttpServer())
+    const response = await request(testModule.server)
       .get('/404')
       .set('Accept', 'text/html')
       .expect(HttpStatus.NOT_FOUND)
@@ -140,7 +143,7 @@ describe('app.controller test', () => {
   });
 
   test('that the error-handler handles http-500 errors', async () => {
-    const response = await request(testModule.app.getHttpServer())
+    const response = await request(testModule.server)
       .get('/500')
       .set('Accept', 'text/html')
       .expect(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -149,7 +152,7 @@ describe('app.controller test', () => {
   });
 
   test('that the error-handler handles non-http errors', async () => {
-    const response = await request(testModule.app.getHttpServer())
+    const response = await request(testModule.server)
       .get('/error')
       .set('Accept', 'text/html')
       .expect(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -158,12 +161,12 @@ describe('app.controller test', () => {
   });
 
   test('the application is configured to process cookies', async () => {
-    await request(testModule.app.getHttpServer())
+    await request(testModule.server)
       .get('/set-cookie')
       .expect(HttpStatus.OK)
       .expect('set-cookie', SESSION_COOKIE_PATTERN);
 
-    await request(testModule.app.getHttpServer())
+    await request(testModule.server)
       .get('/read-cookie')
       .set('Cookie', [`test=NestJS`])
       .expect(HttpStatus.OK)
@@ -171,7 +174,7 @@ describe('app.controller test', () => {
   });
 
   test('that the application returns the security headers', async () => {
-    await request(testModule.app.getHttpServer())
+    await request(testModule.server)
       .get('/health')
       .expect(HttpStatus.NO_CONTENT)
       .expect('x-dns-prefetch-control', ANY_CHARACTER_PATTERN)
@@ -179,7 +182,7 @@ describe('app.controller test', () => {
   });
 
   test('that the application returns the hardened security headers', async () => {
-    await request(testModule.app.getHttpServer())
+    await request(testModule.server)
       .get('/health')
       .expect(
         'strict-transport-security',
@@ -203,15 +206,13 @@ describe('app.controller test', () => {
   });
 
   test('that the application no longer sets network error logging headers', async () => {
-    const response = await request(testModule.app.getHttpServer()).get(
-      '/health',
-    );
+    const response = await request(testModule.server).get('/health');
 
-    expect(response.headers['nel']).toBeUndefined();
+    expect(response.headers.nel).toBeUndefined();
   });
 
   test('that csp reports are accepted and answered with 204', async () => {
-    const response = await request(testModule.app.getHttpServer())
+    const response = await request(testModule.server)
       .post('/csp/reports')
       .set('Content-Type', 'application/csp-report')
       .send(
@@ -226,7 +227,7 @@ describe('app.controller test', () => {
   });
 
   test('that oversized csp reports are refused', async () => {
-    const response = await request(testModule.app.getHttpServer())
+    const response = await request(testModule.server)
       .post('/csp/reports')
       .set('Content-Type', 'application/reports+json')
       .send('[' + '0,'.repeat(20_000) + '0]');
@@ -234,7 +235,7 @@ describe('app.controller test', () => {
   });
 
   test('that the application returns the cross-origin headers', async () => {
-    await request(testModule.app.getHttpServer())
+    await request(testModule.server)
       .get('/health')
       .expect(HttpStatus.NO_CONTENT)
       .expect('access-control-allow-origin', '*')
@@ -242,14 +243,14 @@ describe('app.controller test', () => {
   });
 
   test('that the application returns the server-timing header', async () => {
-    await request(testModule.app.getHttpServer())
+    await request(testModule.server)
       .get('/health')
       .expect(HttpStatus.NO_CONTENT)
       .expect('server-timing', APP_TOTAL_SERVER_TIMING_PATTERN);
   });
 
   test('that the application supports request validation', async () => {
-    await request(testModule.app.getHttpServer())
+    await request(testModule.server)
       .post('/validate')
       .send({
         email: 'not-an-email',
@@ -264,7 +265,7 @@ describe('app.controller test', () => {
   });
 
   test('that the application disallows all crawling', async () => {
-    await request(testModule.app.getHttpServer())
+    await request(testModule.server)
       .get('/robots.txt')
       .expect('Content-Type', TEXT_PLAIN_PATTERN)
       .expect(HttpStatus.OK)
@@ -276,18 +277,18 @@ describe('app.controller test', () => {
   });
 
   test('that the application renders a version badge', async () => {
-    await request(testModule.app.getHttpServer())
+    await request(testModule.server)
       .get('/version.svg')
       .expect('Content-Type', 'image/svg+xml; charset=utf-8')
       .expect(HttpStatus.OK)
       .then((response) => {
-        expect(response.body.toString()).toMatch(SVG_PATTERN);
+        expect(String(response.body)).toMatch(SVG_PATTERN);
         return response;
       });
   });
 
   test('should have the request context set', async () => {
-    await request(testModule.app.getHttpServer())
+    await request(testModule.server)
       .get('/cls-ctx')
       .expect('Content-Type', JSON_CONTENT_TYPE_PATTERN)
       .expect(HttpStatus.OK)

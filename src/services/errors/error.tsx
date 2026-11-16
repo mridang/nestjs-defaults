@@ -1,7 +1,7 @@
 /**
  * @file Server-rendered error page shown for failed requests.
  */
-import { FunctionalComponent } from 'preact';
+import type { FunctionalComponent } from 'preact';
 import { HttpStatus } from '@nestjs/common';
 import { render } from 'preact-render-to-string';
 
@@ -106,7 +106,7 @@ const errors: Record<
 };
 
 const ErrorPage: FunctionalComponent<{
-  httpStatus: HttpStatus;
+  httpStatus: number;
 }> = ({ httpStatus }) => {
   const errorInfo = errors[httpStatus] || {
     statusCode: httpStatus,

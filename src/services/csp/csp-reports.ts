@@ -99,10 +99,10 @@ function field(
   body: Readonly<Record<string, unknown>>,
   ...keys: readonly string[]
 ): string {
-  return (
-    (keys.map((key) => body[key]).find((v) => typeof v === 'string') as
-      string | undefined) ?? ''
-  );
+  const found = keys
+    .map((key) => body[key])
+    .find((v): v is string => typeof v === 'string');
+  return found ?? '';
 }
 
 /**
@@ -192,9 +192,7 @@ function summarise(
     source: [
       pathOf(field(body, 'sourceFile', 'source-file')),
       field(body, 'lineNumber', 'line-number') ||
-        (typeof body['lineNumber'] === 'number'
-          ? String(body['lineNumber'])
-          : ''),
+        (typeof body.lineNumber === 'number' ? String(body.lineNumber) : ''),
     ]
       .filter(Boolean)
       .join(':'),
@@ -213,8 +211,8 @@ function summarise(
 function reportEntries(body: unknown): readonly ReportEntry[] {
   if (Array.isArray(body)) {
     return body.flatMap((entry): ReportEntry[] =>
-      isRecord(entry) && isRecord(entry['body'])
-        ? [[short(entry['type'], 40), entry['body']]]
+      isRecord(entry) && isRecord(entry.body)
+        ? [[short(entry.type, 40), entry.body]]
         : [],
     );
   }

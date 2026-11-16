@@ -71,7 +71,7 @@ export class SentryInterceptor implements NestInterceptor {
    */
   private static shouldReport(error: unknown): boolean {
     if (error instanceof HttpException) {
-      return error.getStatus() >= HttpStatus.INTERNAL_SERVER_ERROR;
+      return error.getStatus() >= (HttpStatus.INTERNAL_SERVER_ERROR as number);
     }
     return true;
   }

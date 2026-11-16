@@ -37,8 +37,8 @@ export class EnvSecretsSource implements SecretsSource {
    * const secrets = await new EnvSecretsSource().load(); // {}
    * ```
    */
-  load(): Promise<Record<string, string>> {
-    return Promise.resolve({});
+  async load(): Promise<Record<string, string>> {
+    return {};
   }
 }
 
@@ -69,7 +69,7 @@ interface SecretsManagerSdk {
  * const sdk = await loadSecretsManager();
  * ```
  */
-const loadSecretsManager = (): Promise<SecretsManagerSdk> =>
+const loadSecretsManager = async (): Promise<SecretsManagerSdk> =>
   import('@aws-sdk/client-secrets-manager');
 
 /**
@@ -122,10 +122,12 @@ export class AwsSecretsManagerSource implements SecretsSource {
    */
   static parse(data: SecretValue): Record<string, string> {
     if (data.SecretString) {
-      return JSON.parse(data.SecretString);
+      return JSON.parse(data.SecretString) as Record<string, string>;
     }
     if (data.SecretBinary) {
-      return JSON.parse(new TextDecoder('utf-8').decode(data.SecretBinary));
+      return JSON.parse(
+        new TextDecoder('utf-8').decode(data.SecretBinary),
+      ) as Record<string, string>;
     }
     throw new Error('Secrets Manager returned no string or binary data');
   }

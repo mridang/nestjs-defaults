@@ -196,7 +196,7 @@ export class RequestIdMiddleware implements NestMiddleware {
           method: req.method,
           bytes: this.toNumber(req.headers['content-length']),
           mime_type: req.headers['content-type'],
-          referrer: req.headers['referer'],
+          referrer: req.headers.referer,
           id: this.firstHeader(req.headers['cf-ray']),
         },
       },

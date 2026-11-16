@@ -4,12 +4,12 @@
 import { expect, describe, test } from '@jest/globals';
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
-import { SentryModule } from '../../../src/services/sentry/sentry.module';
+import { SentryModule } from '../../../src/services/sentry/sentry.module.js';
+import type { SentryReporter } from '../../../src/services/sentry/reporter.js';
 import {
   NoopSentryReporter,
   SENTRY_REPORTER,
-  SentryReporter,
-} from '../../../src/services/sentry/reporter';
+} from '../../../src/services/sentry/reporter.js';
 
 /**
  * Compiles {@link SentryModule} with the given configuration values exposed

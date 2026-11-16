@@ -3,8 +3,8 @@
  */
 import type { Ecs } from '@elastic/ecs';
 import os from 'node:os';
+import type { LogSink } from './sink.js';
 import {
-  LogSink,
   PrettyConsoleSink,
   StdoutJsonSink,
   StructuredConsoleSink,

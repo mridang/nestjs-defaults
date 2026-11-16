@@ -38,7 +38,9 @@ export class SentryModule {
         {
           provide: SENTRY_REPORTER,
           inject: [ConfigService],
-          useFactory: (config: ConfigService): Promise<SentryReporter> => {
+          useFactory: async (
+            config: ConfigService,
+          ): Promise<SentryReporter> => {
             return createSentryReporter({
               dsn: config.get<string>('SENTRY_DSN'),
               environment: config.get<string>('NODE_ENV') ?? 'development',

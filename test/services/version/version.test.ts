@@ -1,11 +1,12 @@
 /**
  * @file End-to-end tests for the version badge endpoint.
  */
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import request from 'supertest';
 import { HttpStatus } from '@nestjs/common';
-import { NestExpressApplication } from '@nestjs/platform-express';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
-import { VersionModule } from '../../../src/services/version/version.module';
+import { VersionModule } from '../../../src/services/version/version.module.js';
 
 /** Matches an inline SVG document. */
 const SVG_PATTERN = /<svg.*?svg>/;
@@ -23,7 +24,7 @@ describe('version.e2e test', () => {
           rawBody: true,
         }),
       )
-      .then((nest) => nest.init());
+      .then(async (nest) => nest.init());
   });
 
   afterAll(async () => {
@@ -36,7 +37,7 @@ describe('version.e2e test', () => {
       .expect(HttpStatus.OK)
       .expect('Content-Type', 'image/svg+xml; charset=utf-8')
       .expect((response) => {
-        expect(response.body.toString()).toMatch(SVG_PATTERN);
+        expect(String(response.body)).toMatch(SVG_PATTERN);
       });
   });
 });
