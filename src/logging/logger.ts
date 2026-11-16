@@ -256,8 +256,12 @@ export class BetterLogger implements LoggerService {
     context: string;
     error?: EcsErrorFields;
   } {
-    const error = optionalParams.find((param) => param instanceof Error);
-    const rest = optionalParams.filter((param) => !(param instanceof Error));
+    const error = optionalParams.find(
+      (parameter) => parameter instanceof Error,
+    );
+    const rest = optionalParams.filter(
+      (parameter) => !(parameter instanceof Error),
+    );
     const last = rest.at(-1);
     return {
       context: typeof last === 'string' ? last : DEFAULT_CONTEXT,

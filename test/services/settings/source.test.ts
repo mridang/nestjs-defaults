@@ -7,6 +7,9 @@ import {
   EnvSecretsSource,
 } from '../../../src/services/settings/source';
 
+/** Matches the error message for a source that returns no data. */
+const NO_DATA_MESSAGE_PATTERN = /no string or binary data/;
+
 describe('EnvSecretsSource', () => {
   test('resolves to an empty map (secrets live in the environment)', async () => {
     await expect(new EnvSecretsSource().load()).resolves.toEqual({});
@@ -58,7 +61,7 @@ describe('AwsSecretsManagerSource.parse', () => {
 
   test('throws when the response carries no data', () => {
     expect(() => AwsSecretsManagerSource.parse({})).toThrow(
-      /no string or binary data/,
+      NO_DATA_MESSAGE_PATTERN,
     );
   });
 });

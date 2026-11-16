@@ -159,9 +159,13 @@ describe('EdgeCacheInterceptor', () => {
     const failed = aContext('/');
     failed.sent['Content-Type'] = 'text/html';
     failed.res.statusCode = 500;
-    const i = build(cache);
-    await lastValueFrom(i.intercept(cookie.context, { handle: () => of('x') }));
-    await lastValueFrom(i.intercept(failed.context, { handle: () => of('x') }));
+    const index = build(cache);
+    await lastValueFrom(
+      index.intercept(cookie.context, { handle: () => of('x') }),
+    );
+    await lastValueFrom(
+      index.intercept(failed.context, { handle: () => of('x') }),
+    );
 
     expect(cache.store.size).toBe(0);
   });
@@ -170,9 +174,7 @@ describe('EdgeCacheInterceptor', () => {
     const ctx = aContext('/');
     const handler = jest.fn(() => of('x'));
 
-    await lastValueFrom(
-      build(undefined).intercept(ctx.context, { handle: handler }),
-    );
+    await lastValueFrom(build().intercept(ctx.context, { handle: handler }));
 
     expect(handler).toHaveBeenCalled();
   });

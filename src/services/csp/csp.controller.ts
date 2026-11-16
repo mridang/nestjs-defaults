@@ -10,6 +10,7 @@ import {
   Post,
   Req,
 } from '@nestjs/common';
+// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only or supplies the middleware types; h3 does not provide these types, so the swap is not a drop-in
 import type { Request } from 'express';
 import { summariseReports } from './csp-reports.js';
 
@@ -43,8 +44,8 @@ export class CspReportsController {
     } catch {
       return;
     }
-    summariseReports(payload).forEach((report) => {
+    for (const report of summariseReports(payload)) {
       this.logger.warn(`csp-report ${JSON.stringify(report)}`);
-    });
+    }
   }
 }

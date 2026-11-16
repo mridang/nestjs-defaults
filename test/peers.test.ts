@@ -11,7 +11,7 @@ describe('peer modules', () => {
     ['@nestjs/cache-manager', CacheModule],
     ['@nestjs/cqrs', CqrsModule],
     ['@nestjs/jwt', JwtModule],
-  ])('resolves %s', (_name, mod) => {
-    expect(mod).toBeDefined();
+  ])('resolves %s', (_name, peerModule) => {
+    expect(peerModule).toBeDefined();
   });
 });

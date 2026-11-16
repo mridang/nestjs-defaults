@@ -10,6 +10,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces/index.js';
+// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
 import { Response } from 'express';
 import { isObject } from '@nestjs/common/utils/shared.utils.js';
 import showError from './error.js';

@@ -48,7 +48,7 @@ describe('BetterLogger', () => {
   });
 
   test('emits an ECS document carrying resource, message and log fields', () => {
-    const logger = new BetterLogger(makeCls(undefined), strategy);
+    const logger = new BetterLogger(makeCls(), strategy);
 
     logger.log('hello world', 'HomeController');
 
@@ -64,7 +64,7 @@ describe('BetterLogger', () => {
   });
 
   test('maps every NestJS level onto its ECS log.level', () => {
-    const logger = new BetterLogger(makeCls(undefined), strategy);
+    const logger = new BetterLogger(makeCls(), strategy);
     const levels: ReadonlyArray<[LogLevel, string]> = [
       ['log', 'info'],
       ['error', 'error'],
@@ -74,7 +74,7 @@ describe('BetterLogger', () => {
       ['fatal', 'fatal'],
     ];
 
-    levels.forEach(([method]) => logger[method]('message'));
+    for (const [method] of levels) logger[method]('message');
 
     expect(sink.entries.map((entry) => entry.log?.level)).toEqual(
       levels.map(([, ecsLevel]) => ecsLevel),
@@ -82,7 +82,7 @@ describe('BetterLogger', () => {
   });
 
   test('defaults the logger context when none is supplied', () => {
-    const logger = new BetterLogger(makeCls(undefined), strategy);
+    const logger = new BetterLogger(makeCls(), strategy);
 
     logger.log('no context here');
 
@@ -90,7 +90,7 @@ describe('BetterLogger', () => {
   });
 
   test('shapes a thrown Error into ECS error fields', () => {
-    const logger = new BetterLogger(makeCls(undefined), strategy);
+    const logger = new BetterLogger(makeCls(), strategy);
     const failure = Object.assign(new Error('boom'), {
       code: 'E_BOOM',
       id: 'err-1',
@@ -128,7 +128,7 @@ describe('BetterLogger', () => {
   });
 
   test('does not emit when the level is disabled', () => {
-    const logger = new BetterLogger(makeCls(undefined), strategy, ['error']);
+    const logger = new BetterLogger(makeCls(), strategy, ['error']);
 
     logger.verbose('should be dropped');
     logger.error('should pass');

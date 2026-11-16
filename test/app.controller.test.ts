@@ -2,7 +2,7 @@
  * @file End-to-end tests of the default controller, error handling, headers, cookies, validation and the version badge.
  */
 import { expect } from '@jest/globals';
-import { End2EndModule } from './e2e.module';
+import { End2EndModule } from './end-to-end.module';
 import { DefaultsModule } from '../src/defaults.module';
 import request from 'supertest';
 import {
@@ -15,9 +15,46 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
+// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
 import type { Request, Response } from 'express';
 import { IsEmail, IsNotEmpty } from 'class-validator';
 import { ClsService } from 'nestjs-cls';
+
+/** Matches the session cookie set by the example app. */
+const SESSION_COOKIE_PATTERN = /test=NestJS/;
+
+/** Matches any non-empty header value. */
+const ANY_CHARACTER_PATTERN = /./;
+
+/** Matches the frame-ancestors directive that blocks framing. */
+const FRAME_ANCESTORS_PATTERN = /frame-ancestors 'none';?/;
+
+/** Matches the CSP report-uri directive. */
+const REPORT_URI_PATTERN = /report-uri \/csp\/reports/;
+
+/** Matches the CSP report-to directive. */
+const REPORT_TO_PATTERN = /report-to csp-endpoint/;
+
+/** Matches the script-src directive allowing the Cloudflare insights script. */
+const SCRIPT_SRC_CLOUDFLARE_PATTERN =
+  /script-src [^;]*static\.cloudflareinsights\.com/;
+
+/** Matches the connect-src directive allowing Cloudflare insights. */
+const CONNECT_SRC_CLOUDFLARE_PATTERN =
+  /connect-src [^;]*cloudflareinsights\.com/;
+
+/** Matches the App Total server-timing entry. */
+const APP_TOTAL_SERVER_TIMING_PATTERN =
+  /total;dur=\d+(\.\d+)?;desc="App Total"/;
+
+/** Matches a plain-text content type. */
+const TEXT_PLAIN_PATTERN = /text\/plain/;
+
+/** Matches an inline SVG document. */
+const SVG_PATTERN = /<svg.*?svg>/;
+
+/** Matches a JSON content type. */
+const JSON_CONTENT_TYPE_PATTERN = /application\/json/;
 
 class TestDTO {
   @IsNotEmpty()
@@ -124,7 +161,7 @@ describe('app.controller test', () => {
     await request(testModule.app.getHttpServer())
       .get('/set-cookie')
       .expect(HttpStatus.OK)
-      .expect('set-cookie', /test=NestJS/);
+      .expect('set-cookie', SESSION_COOKIE_PATTERN);
 
     await request(testModule.app.getHttpServer())
       .get('/read-cookie')
@@ -137,8 +174,8 @@ describe('app.controller test', () => {
     await request(testModule.app.getHttpServer())
       .get('/health')
       .expect(HttpStatus.NO_CONTENT)
-      .expect('x-dns-prefetch-control', /./)
-      .expect('x-frame-options', /./);
+      .expect('x-dns-prefetch-control', ANY_CHARACTER_PATTERN)
+      .expect('x-frame-options', ANY_CHARACTER_PATTERN);
   });
 
   test('that the application returns the hardened security headers', async () => {
@@ -158,17 +195,11 @@ describe('app.controller test', () => {
         'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
       )
       .expect('reporting-endpoints', 'csp-endpoint="/csp/reports"')
-      .expect('content-security-policy', /frame-ancestors 'none';?/)
-      .expect('content-security-policy', /report-uri \/csp\/reports/)
-      .expect('content-security-policy', /report-to csp-endpoint/)
-      .expect(
-        'content-security-policy',
-        /script-src [^;]*static\.cloudflareinsights\.com/,
-      )
-      .expect(
-        'content-security-policy',
-        /connect-src [^;]*cloudflareinsights\.com/,
-      );
+      .expect('content-security-policy', FRAME_ANCESTORS_PATTERN)
+      .expect('content-security-policy', REPORT_URI_PATTERN)
+      .expect('content-security-policy', REPORT_TO_PATTERN)
+      .expect('content-security-policy', SCRIPT_SRC_CLOUDFLARE_PATTERN)
+      .expect('content-security-policy', CONNECT_SRC_CLOUDFLARE_PATTERN);
   });
 
   test('that the application no longer sets network error logging headers', async () => {
@@ -214,7 +245,7 @@ describe('app.controller test', () => {
     await request(testModule.app.getHttpServer())
       .get('/health')
       .expect(HttpStatus.NO_CONTENT)
-      .expect('server-timing', /total;dur=\d+(\.\d+)?;desc="App Total"/);
+      .expect('server-timing', APP_TOTAL_SERVER_TIMING_PATTERN);
   });
 
   test('that the application supports request validation', async () => {
@@ -235,7 +266,7 @@ describe('app.controller test', () => {
   test('that the application disallows all crawling', async () => {
     await request(testModule.app.getHttpServer())
       .get('/robots.txt')
-      .expect('Content-Type', /text\/plain/)
+      .expect('Content-Type', TEXT_PLAIN_PATTERN)
       .expect(HttpStatus.OK)
       .then((response) => {
         expect(response.text).toContain('User-agent: *');
@@ -250,7 +281,7 @@ describe('app.controller test', () => {
       .expect('Content-Type', 'image/svg+xml; charset=utf-8')
       .expect(HttpStatus.OK)
       .then((response) => {
-        expect(response.body.toString()).toMatch(/<svg.*?svg>/);
+        expect(response.body.toString()).toMatch(SVG_PATTERN);
         return response;
       });
   });
@@ -258,7 +289,7 @@ describe('app.controller test', () => {
   test('should have the request context set', async () => {
     await request(testModule.app.getHttpServer())
       .get('/cls-ctx')
-      .expect('Content-Type', /application\/json/)
+      .expect('Content-Type', JSON_CONTENT_TYPE_PATTERN)
       .expect(HttpStatus.OK)
       .then((response) => {
         expect(response.body).toMatchObject({

@@ -7,6 +7,7 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
+// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only or supplies the middleware types; h3 does not provide these types, so the swap is not a drop-in
 import type {
   Request as ExpressRequest,
   Response as ExpressResponse,

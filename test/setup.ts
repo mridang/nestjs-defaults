@@ -1,6 +1,7 @@
 /**
  * @file Global Jest setup that loads the local environment file before the tests run.
  */
+// eslint-disable-next-line e18e/ban-dependencies -- process.loadEnvFile throws when .env is missing where config() ignores it, so the swap would change test setup
 import { config } from 'dotenv';
 
 /**

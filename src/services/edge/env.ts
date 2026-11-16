@@ -24,7 +24,7 @@ let cached: Promise<WorkerEnv | undefined> | undefined;
  */
 export function workerEnv(): Promise<WorkerEnv | undefined> {
   cached ??= (import(`cloudflare:workers`) as Promise<{ env: WorkerEnv }>)
-    .then((mod) => mod.env)
+    .then((workerModule) => workerModule.env)
     .catch(() => undefined);
   return cached;
 }

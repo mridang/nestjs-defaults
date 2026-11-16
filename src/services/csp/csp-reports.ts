@@ -15,6 +15,10 @@
  * printable before it is logged.
  */
 
+/** Matches a CSP keyword source that is written without quotes. */
+const CSP_KEYWORD_PATTERN =
+  /^(?:inline|eval|self|trusted-types-sink|wasm-eval)$/;
+
 /** One report, reduced to what is worth a log line. */
 export interface ReportSummary {
   /** The report kind, such as `csp-violation` or `deprecation`. */
@@ -129,10 +133,7 @@ function pathOf(address: string): string {
  * ```
  */
 function blockedOf(address: string): string {
-  if (
-    address === '' ||
-    /^(?:inline|eval|self|trusted-types-sink|wasm-eval)$/.test(address)
-  ) {
+  if (address === '' || CSP_KEYWORD_PATTERN.test(address)) {
     return address;
   }
   try {
