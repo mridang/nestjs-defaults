@@ -3,8 +3,9 @@
  */
 import { describe, expect, jest, test } from '@jest/globals';
 import { lastValueFrom, of } from 'rxjs';
+import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host.js';
 import { EdgeCacheInterceptor } from '../../../src/services/edge/edge-cache.interceptor.js';
-import type { CallHandler, ExecutionContext } from '@nestjs/common';
+import type { CallHandler } from '@nestjs/common';
 
 class MemoryCache {
   store = new Map<string, Response>();
@@ -47,9 +48,7 @@ function aContext(
       sent[n] = v;
     },
   };
-  const context = {
-    switchToHttp: () => ({ getRequest: () => req, getResponse: () => res }),
-  } as unknown as ExecutionContext;
+  const context = new ExecutionContextHost([req, res]);
   return { context, res, sent, req };
 }
 
@@ -65,6 +64,7 @@ function aContext(
  */
 function build(cache: MemoryCache | undefined, paths = ['/']) {
   return new EdgeCacheInterceptor(paths, {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the Workers Cache type is a large runtime-only surface and MemoryCache implements only match and put, which are all the interceptor calls, so the option type is not widened for a test
     cache: () => cache as unknown as Cache | undefined,
     env: async () => ({ CF_VERSION_METADATA: { id: 'v1' } }),
   });

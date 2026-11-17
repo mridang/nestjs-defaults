@@ -21,6 +21,9 @@ export const LOG_STRATEGY = Symbol('LOG_STRATEGY');
  */
 export const ECS_VERSION = '9.4.0';
 
+/** The runtime's global object, typed for `navigator`, which Node before 21 does not define. */
+const runtimeGlobals: { navigator?: { userAgent?: string } } = globalThis;
+
 /**
  * `true` when executing inside a Cloudflare Workers isolate.
  *
@@ -28,7 +31,7 @@ export const ECS_VERSION = '9.4.0';
  * documented and stable way to detect the runtime.
  */
 const ON_CLOUDFLARE_WORKERS =
-  globalThis.navigator?.userAgent === 'Cloudflare-Workers';
+  runtimeGlobals.navigator?.userAgent === 'Cloudflare-Workers';
 
 /**
  * Minimal view of `node:os` used to describe a host. Declared as an interface

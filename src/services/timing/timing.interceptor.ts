@@ -13,7 +13,7 @@ import { finalize } from 'rxjs/operators';
 // eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
 import type { Response } from 'express';
 
-const asyncLocalStorage = new AsyncLocalStorage();
+const asyncLocalStorage = new AsyncLocalStorage<Map<string, Timing>>();
 
 type Timing = {
   key: string;
@@ -27,10 +27,10 @@ export class TimingInterceptor implements NestInterceptor {
     const startTime = performance.now();
     const response = context.switchToHttp().getResponse<Response>();
 
-    return asyncLocalStorage.run(new Map<string, Timing>(), () => {
-      const store = asyncLocalStorage.getStore() as Map<string, Timing>;
+    const store = new Map<string, Timing>();
 
-      return next.handle().pipe(
+    return asyncLocalStorage.run(store, () =>
+      next.handle().pipe(
         finalize(() => {
           const executionTime = performance.now() - startTime;
 
@@ -46,8 +46,8 @@ export class TimingInterceptor implements NestInterceptor {
             response.setHeader('Server-Timing', serverTimingHeader);
           }
         }),
-      );
-    });
+      ),
+    );
   }
 }
 
@@ -59,6 +59,6 @@ export class TimingInterceptor implements NestInterceptor {
  * getAsyncLocalStorage()?.set('db', { key: 'db', duration: 12 });
  * ```
  */
-export function getAsyncLocalStorage(): Map<string, Timing> {
-  return asyncLocalStorage.getStore() as Map<string, Timing>;
+export function getAsyncLocalStorage(): Map<string, Timing> | undefined {
+  return asyncLocalStorage.getStore();
 }

@@ -8,14 +8,14 @@ import {
   securityHeaders,
 } from '../../../src/services/headers/security-headers.js';
 // eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
-import type { Request } from 'express';
+import type { NextFunction, Response } from 'express';
 
 describe('securityHeaders', () => {
   test('sets the permissions policy and reporting endpoint', () => {
-    const setHeader = jest.fn();
-    const next = jest.fn();
+    const setHeader = jest.fn<Response['setHeader']>();
+    const next: NextFunction = jest.fn();
 
-    securityHeaders({} as Request, { setHeader }, next);
+    securityHeaders({}, { setHeader }, next);
 
     expect(setHeader).toHaveBeenCalledWith(
       'Permissions-Policy',

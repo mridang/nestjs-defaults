@@ -60,7 +60,7 @@ export class CustomHttpExceptionFilter implements ExceptionFilter {
    * ```
    */
   public isExceptionObject(err: unknown): err is Error {
-    return isObject(err) && !!(err as Error).message;
+    return isObject(err) && 'message' in err && Boolean(err.message);
   }
 
   /**
@@ -75,7 +75,12 @@ export class CustomHttpExceptionFilter implements ExceptionFilter {
   private static isHttpError(
     err: unknown,
   ): err is { statusCode: number; message: string } {
-    const candidate = err as { statusCode?: number; message?: string } | null;
-    return Boolean(candidate?.statusCode && candidate?.message);
+    if (typeof err !== 'object' || err === null) {
+      return false;
+    }
+    const statusCode: unknown =
+      'statusCode' in err ? err.statusCode : undefined;
+    const message: unknown = 'message' in err ? err.message : undefined;
+    return Boolean(statusCode && message);
   }
 }

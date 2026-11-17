@@ -126,11 +126,14 @@ export class NoopSentryReporter implements SentryReporter {
   }
 }
 
+/** The runtime's global object, typed for `navigator`, which Node before 21 does not define. */
+const runtimeGlobals: { navigator?: { userAgent?: string } } = globalThis;
+
 /**
  * `true` when executing inside a Cloudflare Workers isolate.
  */
 const ON_CLOUDFLARE_WORKERS =
-  globalThis.navigator?.userAgent === 'Cloudflare-Workers';
+  runtimeGlobals.navigator?.userAgent === 'Cloudflare-Workers';
 
 /**
  * Options for {@link createSentryReporter}.

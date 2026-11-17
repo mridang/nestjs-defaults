@@ -47,8 +47,8 @@ export interface EdgeCacheSources {
  * ```
  */
 function defaultCache(): Cache | undefined {
-  const store = (globalThis as { caches?: { default?: Cache } }).caches;
-  return store?.default;
+  const scope: { caches?: CacheStorage & { default?: Cache } } = globalThis;
+  return scope.caches?.default;
 }
 
 /**
@@ -61,9 +61,16 @@ function defaultCache(): Cache | undefined {
  * ```
  */
 function releaseOf(env: WorkerEnv | undefined): string {
-  const metadata = env?.CF_VERSION_METADATA as { id?: string } | undefined;
+  const metadata: unknown = env?.CF_VERSION_METADATA;
+  const id: unknown =
+    typeof metadata === 'object' && metadata !== null && 'id' in metadata
+      ? metadata.id
+      : undefined;
   const version = env?.SERVICE_VERSION;
-  return metadata?.id ?? (typeof version === 'string' ? version : 'dev');
+  if (typeof id === 'string') {
+    return id;
+  }
+  return typeof version === 'string' ? version : 'dev';
 }
 
 /**
@@ -90,7 +97,11 @@ export class EdgeCacheInterceptor implements NestInterceptor {
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const req = context.switchToHttp().getRequest<express.Request>();
+    const req = context
+      .switchToHttp()
+      .getRequest<
+        Omit<express.Request, 'originalUrl'> & { originalUrl?: string }
+      >();
     const res = context.switchToHttp().getResponse<express.Response>();
     const cache = this.sources.cache();
     const url = req.originalUrl ?? req.url;
