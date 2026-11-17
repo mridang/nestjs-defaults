@@ -7,14 +7,13 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only or supplies the middleware types; h3 does not provide these types, so the swap is not a drop-in
-import type {
-  Request as ExpressRequest,
-  Response as ExpressResponse,
-} from 'express';
+
 import { from, Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { workerEnv, type WorkerEnv } from './env.js';
+import { workerEnv } from './env.js';
+import type { WorkerEnv } from './env.js';
+// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only or supplies the middleware types; h3 does not provide these types, so the swap is not a drop-in
+import type express from 'express';
 
 /** Used when the app gave the page no Cache-Control of its own. */
 const DEFAULT_CACHE_CONTROL = 'public, max-age=300';
@@ -48,8 +47,7 @@ export interface EdgeCacheSources {
  * ```
  */
 function defaultCache(): Cache | undefined {
-  const store = Reflect.get(globalThis, 'caches') as
-    { default?: Cache } | undefined;
+  const store = (globalThis as { caches?: { default?: Cache } }).caches;
   return store?.default;
 }
 
@@ -92,8 +90,8 @@ export class EdgeCacheInterceptor implements NestInterceptor {
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const req = context.switchToHttp().getRequest<ExpressRequest>();
-    const res = context.switchToHttp().getResponse<ExpressResponse>();
+    const req = context.switchToHttp().getRequest<express.Request>();
+    const res = context.switchToHttp().getResponse<express.Response>();
     const cache = this.sources.cache();
     const url = req.originalUrl ?? req.url;
     const anonymous =
@@ -128,7 +126,7 @@ export class EdgeCacheInterceptor implements NestInterceptor {
     );
   }
 
-  private async replay(hit: Response, res: ExpressResponse) {
+  private async replay(hit: Response, res: express.Response) {
     const type = hit.headers.get('content-type');
     if (type) {
       res.setHeader('Content-Type', type);
@@ -144,17 +142,18 @@ export class EdgeCacheInterceptor implements NestInterceptor {
       : Buffer.from(bytes);
   }
 
-  private async keep(
+  private async keep<Body>(
     cache: Cache,
     key: Request,
-    res: ExpressResponse,
-    body: unknown,
-  ): Promise<unknown> {
+    res: express.Response,
+    body: Body,
+  ): Promise<Body> {
     const type = res.getHeader('Content-Type');
     const control = res.getHeader('Cache-Control');
     const cacheControl =
       typeof control === 'string' ? control : DEFAULT_CACHE_CONTROL;
     if (
+      // eslint-disable-next-line tslop/no-known-value-widening -- the body is any value a handler returned, narrowed by isKeptBody
       isKeptBody(body) &&
       res.statusCode === 200 &&
       typeof type === 'string' &&

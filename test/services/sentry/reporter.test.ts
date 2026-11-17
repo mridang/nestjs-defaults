@@ -2,16 +2,16 @@
  * @file Tests for the Sentry reporters, covering the no-op reporter, SDK delegation and loader selection.
  */
 import { expect, describe, test, jest } from '@jest/globals';
+import {
+  createSentryReporter,
+  NoopSentryReporter,
+  SdkSentryReporter,
+} from '../../../src/services/sentry/reporter.js';
 import type {
   SentryBreadcrumb,
   SentryLevel,
   SentryReporter,
   SentrySdkLoaders,
-} from '../../../src/services/sentry/reporter.js';
-import {
-  createSentryReporter,
-  NoopSentryReporter,
-  SdkSentryReporter,
 } from '../../../src/services/sentry/reporter.js';
 
 /**

@@ -1,18 +1,18 @@
 /**
  * @file Shared end-to-end harness that builds a Nest application with the defaults configured.
  */
-import type { Server } from 'node:http';
-import {
-  type INestApplication,
-  Logger,
-  type ModuleMetadata,
-  type Provider,
-  type Type,
-} from '@nestjs/common';
-import type { NestExpressApplication } from '@nestjs/platform-express';
-import type { TestingModuleBuilder } from '@nestjs/testing';
+import { Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import configure from '../src/app.js';
+import type {
+  INestApplication,
+  ModuleMetadata,
+  Provider,
+  Type,
+} from '@nestjs/common';
+import type { Server } from 'node:http';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import type { TestingModuleBuilder } from '@nestjs/testing';
 
 /** One entry in a module's imports, as Nest accepts them. */
 type ModuleImport = NonNullable<ModuleMetadata['imports']>[number];

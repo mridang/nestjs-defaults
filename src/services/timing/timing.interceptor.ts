@@ -1,6 +1,7 @@
 /**
  * @file Interceptor that measures handler duration and adds it to the Server-Timing header.
  */
+import { AsyncLocalStorage } from 'node:async_hooks';
 import {
   CallHandler,
   ExecutionContext,
@@ -11,7 +12,6 @@ import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 // eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
 import type { Response } from 'express';
-import { AsyncLocalStorage } from 'node:async_hooks';
 
 const asyncLocalStorage = new AsyncLocalStorage();
 

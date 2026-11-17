@@ -38,22 +38,18 @@ export class SentryModule {
         {
           provide: SENTRY_REPORTER,
           inject: [ConfigService],
-          useFactory: async (
-            config: ConfigService,
-          ): Promise<SentryReporter> => {
-            return createSentryReporter({
+          useFactory: async (config: ConfigService): Promise<SentryReporter> =>
+            createSentryReporter({
               dsn: config.get<string>('SENTRY_DSN'),
               environment: config.get<string>('NODE_ENV') ?? 'development',
               enabled: config.get<boolean>('SENTRY_ENABLED') !== false,
-            });
-          },
+            }),
         },
         {
           provide: APP_INTERCEPTOR,
           inject: [SENTRY_REPORTER],
-          useFactory: (reporter: SentryReporter): SentryInterceptor => {
-            return new SentryInterceptor(reporter);
-          },
+          useFactory: (reporter: SentryReporter): SentryInterceptor =>
+            new SentryInterceptor(reporter),
         },
       ],
       exports: [SENTRY_REPORTER],

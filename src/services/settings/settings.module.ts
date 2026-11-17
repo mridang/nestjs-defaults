@@ -23,11 +23,9 @@ import { EnvSecretsSource, SecretsSource } from './source.js';
 function stableConfigLoader(
   secrets: Record<string, string>,
 ): (() => Record<string, string>) & { KEY: string } {
-  const loader = (() => secrets) as (() => Record<string, string>) & {
-    KEY: string;
-  };
-  loader.KEY = 'CONFIGURATION(nestjs-defaults)';
-  return loader;
+  return Object.assign(() => secrets, {
+    KEY: 'CONFIGURATION(nestjs-defaults)',
+  });
 }
 
 /**

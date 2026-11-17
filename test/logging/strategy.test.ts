@@ -2,13 +2,13 @@
  * @file Tests for the logging strategy selection and the resource fields each runtime produces.
  */
 import { expect, describe, test } from '@jest/globals';
-import type { HostInfo } from '../../src/logging/strategy.js';
 import { selectStrategy } from '../../src/logging/strategy.js';
 import {
   PrettyConsoleSink,
   StdoutJsonSink,
   StructuredConsoleSink,
 } from '../../src/logging/sink.js';
+import type { HostInfo } from '../../src/logging/strategy.js';
 
 const host: HostInfo = {
   arch: () => 'arm64',
@@ -84,7 +84,8 @@ describe('selectStrategy', () => {
     });
 
     const serialised = JSON.stringify([node.resource, workers.resource]);
-    expect(serialised.toLowerCase()).not.toContain('aws');
-    expect(serialised.toLowerCase()).not.toContain('lambda');
+    const lowered = serialised.toLowerCase();
+    expect(lowered).not.toContain('aws');
+    expect(lowered).not.toContain('lambda');
   });
 });

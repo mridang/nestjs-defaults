@@ -1,8 +1,8 @@
 /**
  * @file Nest module that assembles the insights (Sentry) services.
  */
-import type { DynamicModule } from '@nestjs/common';
 import { SentryModule } from './sentry/index.js';
+import type { DynamicModule } from '@nestjs/common';
 
 /**
  * Build the Sentry insights module.

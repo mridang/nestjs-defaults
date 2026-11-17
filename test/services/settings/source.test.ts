@@ -8,7 +8,7 @@ import {
 } from '../../../src/services/settings/source.js';
 
 /** Matches the error message for a source that returns no data. */
-const NO_DATA_MESSAGE_PATTERN = /no string or binary data/;
+const NO_DATA_MESSAGE_PATTERN = /no string or binary data/u;
 
 describe('EnvSecretsSource', () => {
   test('resolves to an empty map (secrets live in the environment)', async () => {
@@ -25,8 +25,8 @@ describe('AwsSecretsManagerSource.load', () => {
     }
 
     class FakeClient {
-      async send(command: object): Promise<{ SecretString: string }> {
-        sent.push((command as FakeCommand).input);
+      async send(command: FakeCommand): Promise<{ SecretString: string }> {
+        sent.push(command.input);
         return { SecretString: '{"TOKEN":"abc"}' };
       }
     }

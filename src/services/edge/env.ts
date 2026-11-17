@@ -8,6 +8,7 @@
  */
 export type WorkerEnv = Readonly<Record<string, unknown>>;
 
+// eslint-disable-next-line functional/no-let -- the resolved bindings are remembered between calls
 let cached: Promise<WorkerEnv | undefined> | undefined;
 
 /**

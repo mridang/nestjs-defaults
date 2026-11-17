@@ -2,12 +2,12 @@
  * @file Tests for the three log sinks and the output each one writes.
  */
 import { expect, jest, describe, test, afterEach } from '@jest/globals';
-import type { Ecs } from '@elastic/ecs';
 import {
   PrettyConsoleSink,
   StdoutJsonSink,
   StructuredConsoleSink,
 } from '../../src/logging/sink.js';
+import type { Ecs } from '@elastic/ecs';
 
 const entry: Ecs = {
   ecs: { version: '9.4.0' },

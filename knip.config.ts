@@ -5,7 +5,7 @@ export default {
   ignore: ['knip.config.ts'],
   ignoreDependencies: [
     'cloudflare',
-    /^@semantic-release\//,
+    /^@semantic-release\//u,
     '@aws-sdk/client-secrets-manager',
   ],
 };

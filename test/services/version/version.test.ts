@@ -4,12 +4,12 @@
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import request from 'supertest';
 import { HttpStatus } from '@nestjs/common';
-import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import { VersionModule } from '../../../src/services/version/version.module.js';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 
 /** Matches an inline SVG document. */
-const SVG_PATTERN = /<svg.*?svg>/;
+const SVG_PATTERN = /<svg.*?svg>/u;
 
 describe('version.e2e test', () => {
   let testModule: NestExpressApplication;
@@ -31,13 +31,12 @@ describe('version.e2e test', () => {
     await testModule?.close();
   });
 
-  test('that a bage is rendered when requested', () => {
-    return request(testModule.getHttpServer())
+  test('that a bage is rendered when requested', () =>
+    request(testModule.getHttpServer())
       .get('/version.svg')
       .expect(HttpStatus.OK)
       .expect('Content-Type', 'image/svg+xml; charset=utf-8')
       .expect((response) => {
         expect(String(response.body)).toMatch(SVG_PATTERN);
-      });
-  });
+      }));
 });

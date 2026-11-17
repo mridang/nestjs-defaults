@@ -2,10 +2,10 @@
  * @file Tests for the BetterLogger, covering ECS documents, levels, CLS context and errors.
  */
 import { expect, jest, describe, test, beforeEach } from '@jest/globals';
+import { BetterLogger } from '../../src/logging/logger.js';
 import type { LogLevel } from '@nestjs/common';
 import type { Ecs } from '@elastic/ecs';
 import type { ClsService } from 'nestjs-cls';
-import { BetterLogger } from '../../src/logging/logger.js';
 import type { LogSink } from '../../src/logging/sink.js';
 import type { LogStrategy } from '../../src/logging/strategy.js';
 
@@ -74,7 +74,9 @@ describe('BetterLogger', () => {
       ['fatal', 'fatal'],
     ];
 
-    for (const [method] of levels) logger[method]('message');
+    for (const [method] of levels) {
+      logger[method]('message');
+    }
 
     expect(sink.entries.map((entry) => entry.log?.level)).toEqual(
       levels.map(([, ecsLevel]) => ecsLevel),

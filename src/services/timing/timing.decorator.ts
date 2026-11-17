@@ -21,7 +21,7 @@ import { getAsyncLocalStorage } from './timing.interceptor.js';
  * ```
  */
 function serverTiming(key: string, description?: string) {
-  return function (
+  return function serverTimingDecorator(
     _target: unknown,
     propertyKey: string,
     descriptor: PropertyDescriptor,
@@ -29,38 +29,39 @@ function serverTiming(key: string, description?: string) {
     const originalMethod = descriptor.value as (
       this: unknown,
       ...args: unknown[]
+      // eslint-disable-next-line tslop/no-unknown-returns -- wraps any method, so its result passes through untouched
     ) => unknown;
 
-    class Timed {
-      async timed(this: unknown, ...args: unknown[]) {
-        const start = performance.now();
-        let result: unknown;
-        try {
-          result = await originalMethod.apply(this, args);
-        } catch (error) {
-          const end = performance.now();
-          const executionTime = end - start;
-          const store = getAsyncLocalStorage();
-          if (store) {
-            store.set(propertyKey, {
-              key,
-              duration: executionTime,
-              description,
-            });
-          }
-          throw error;
-        }
+    async function timed(this: unknown, ...args: unknown[]) {
+      const start = performance.now();
+      // eslint-disable-next-line functional/no-let -- assigned inside the try block and read after it
+      let result: unknown;
+      try {
+        // eslint-disable-next-line unicorn/no-this-outside-of-class -- the wrapper runs as the decorated method, so `this` is the instance
+        result = await originalMethod.apply(this, args);
+      } catch (error) {
         const end = performance.now();
         const executionTime = end - start;
         const store = getAsyncLocalStorage();
-        store.set(propertyKey, { key, duration: executionTime, description });
-        return result;
+        if (store) {
+          // eslint-disable-next-line functional/immutable-data -- recording the timing in the request's own store is the point of the decorator
+          store.set(propertyKey, {
+            key,
+            duration: executionTime,
+            description,
+          });
+        }
+        throw error;
       }
+      const end = performance.now();
+      const executionTime = end - start;
+      const store = getAsyncLocalStorage();
+      // eslint-disable-next-line functional/immutable-data -- recording the timing in the request's own store is the point of the decorator
+      store.set(propertyKey, { key, duration: executionTime, description });
+      return result;
     }
-    descriptor.value = Reflect.get(
-      Timed.prototype,
-      'timed',
-    ) as typeof originalMethod;
+    // eslint-disable-next-line functional/immutable-data -- a method decorator works by replacing the value on its descriptor
+    descriptor.value = timed;
 
     return descriptor;
   };

@@ -1,9 +1,9 @@
 /**
  * @file Nest module that optionally serves the public directory as static files.
  */
+import path from 'node:path';
 import { DynamicModule, Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import path from 'node:path';
 
 /**
  * Placeholder used when static-asset serving is disabled (e.g. On Cloudflare
