@@ -9,13 +9,15 @@ import type { FunctionalComponent } from 'preact';
 // eslint-disable-next-line no-script-url -- the page ships no script, so the link itself carries the history call
 const GO_BACK_HREF = 'javascript:window.history.back();';
 
-const errors: Record<
-  number,
-  {
-    statusCode: number;
-    errorType: string;
-    errorMessage: string;
-  }
+const errors: Partial<
+  Record<
+    number,
+    {
+      statusCode: number;
+      errorType: string;
+      errorMessage: string;
+    }
+  >
   // eslint-disable-next-line tslop/no-known-value-widening -- looked up by any HTTP status, so the table must stay an open dictionary
 > = {
   [HttpStatus.BAD_REQUEST]: {
@@ -111,7 +113,7 @@ const errors: Record<
 const ErrorPage: FunctionalComponent<{
   httpStatus: number;
 }> = ({ httpStatus }) => {
-  const errorInfo = errors[httpStatus] || {
+  const errorInfo = errors[httpStatus] ?? {
     statusCode: httpStatus,
     errorType: 'Unknown Error',
     errorMessage: 'An unexpected error occurred.',

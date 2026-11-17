@@ -45,7 +45,7 @@ describe('errors.e2e test', () => {
   });
 
   afterAll(async () => {
-    await testModule?.close();
+    await testModule.close();
   });
 
   test('that the filter does render an page when HTML is accepted', () =>

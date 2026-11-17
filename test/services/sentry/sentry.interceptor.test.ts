@@ -7,10 +7,11 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { lastValueFrom, of, throwError } from 'rxjs';
+import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host.js';
 import { SentryInterceptor } from '../../../src/services/sentry/sentry.interceptor.js';
 import { NoopSentryReporter } from '../../../src/services/sentry/reporter.js';
 import type { SentryReporter } from '../../../src/services/sentry/reporter.js';
-import type { CallHandler, ExecutionContext } from '@nestjs/common';
+import type { CallHandler } from '@nestjs/common';
 
 /**
  * Drives the interceptor with a handler that throws the given error and counts the captures.
@@ -27,9 +28,9 @@ async function captureCountFor(error: unknown): Promise<number> {
   const interceptor = new SentryInterceptor(reporter);
   const next: CallHandler = { handle: () => throwError(() => error) };
 
-  await expect(lastValueFrom(interceptor.intercept({}, next))).rejects.toBe(
-    error,
-  );
+  await expect(
+    lastValueFrom(interceptor.intercept(new ExecutionContextHost([]), next)),
+  ).rejects.toBe(error);
 
   return capture.mock.calls.length;
 }
@@ -53,10 +54,7 @@ describe('SentryInterceptor', () => {
     const reporter = new NoopSentryReporter();
     jest.spyOn(reporter, 'captureException').mockReturnValue('event-42');
     const setHeader = jest.fn();
-    const context = {
-      getType: () => 'http',
-      switchToHttp: () => ({ getResponse: () => ({ setHeader }) }),
-    } as unknown as ExecutionContext;
+    const context = new ExecutionContextHost([{}, { setHeader }]);
     const interceptor = new SentryInterceptor(reporter);
     const next: CallHandler = {
       handle: () => throwError(() => new Error('boom')),
@@ -74,9 +72,9 @@ describe('SentryInterceptor', () => {
     const interceptor = new SentryInterceptor(reporter);
     const next: CallHandler = { handle: () => of('ok') };
 
-    await expect(lastValueFrom(interceptor.intercept({}, next))).resolves.toBe(
-      'ok',
-    );
+    await expect(
+      lastValueFrom(interceptor.intercept(new ExecutionContextHost([]), next)),
+    ).resolves.toBe('ok');
     expect(capture).not.toHaveBeenCalled();
   });
 });

@@ -103,7 +103,7 @@ class DynamicController {
 
   @Get('cls-ctx')
   getClsCtx() {
-    return this.clsService.get<object | undefined>('ctx') || {};
+    return this.clsService.get<object | undefined>('ctx') ?? {};
   }
 }
 

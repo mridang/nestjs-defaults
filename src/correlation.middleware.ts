@@ -4,7 +4,7 @@
 import path from 'node:path';
 import { Injectable, NestMiddleware } from '@nestjs/common';
 // eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only or supplies the middleware types; h3 does not provide these types, so the swap is not a drop-in
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request } from 'express';
 import { ClsService } from 'nestjs-cls';
 import UAParser from 'ua-parser-js';
 import type { Ecs } from '@elastic/ecs';
@@ -56,6 +56,23 @@ type EdgeRequest = Request & {
   /** Express-parsed URL components, when available. */
   _parsedUrl?: { query: string };
 };
+
+/**
+ * The parts of an {@link EdgeRequest} the middleware reads.
+ */
+type ReadableEdgeRequest = Pick<
+  EdgeRequest,
+  | 'cf'
+  | '_parsedUrl'
+  | 'headers'
+  | 'hostname'
+  | 'httpVersion'
+  | 'ip'
+  | 'method'
+  | 'originalUrl'
+  | 'path'
+  | 'protocol'
+>;
 
 /**
  * Tracks whether the current isolate has handled a request yet.
@@ -169,7 +186,7 @@ export class RequestIdMiddleware implements NestMiddleware {
    * middleware.use(req, res, () => logger.log('handled'));
    * ```
    */
-  use(req: EdgeRequest, _res: Response, next: NextFunction): void {
+  use(req: ReadableEdgeRequest, _res: unknown, next: NextFunction): void {
     const userAgent = req.headers['user-agent'] ?? '';
     const parsed = this.parseUserAgent(userAgent);
     const edge = req.cf ? mapEdgeMetadata(req.cf) : {};
@@ -186,10 +203,10 @@ export class RequestIdMiddleware implements NestMiddleware {
       },
       user_agent: {
         original: userAgent,
-        name: parsed.browser?.name,
-        version: parsed.browser?.version,
-        device: { name: parsed.device?.model },
-        os: { name: parsed.os?.name, version: parsed.os?.version },
+        name: parsed.browser.name,
+        version: parsed.browser.version,
+        device: { name: parsed.device.model },
+        os: { name: parsed.os.name, version: parsed.os.version },
       },
       http: {
         version: req.httpVersion,

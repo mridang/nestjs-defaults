@@ -1,11 +1,12 @@
 /**
  * @file Tests for the BetterLogger, covering ECS documents, levels, CLS context and errors.
  */
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { expect, jest, describe, test, beforeEach } from '@jest/globals';
+import { ClsService } from 'nestjs-cls';
 import { BetterLogger } from '../../src/logging/logger.js';
 import type { LogLevel } from '@nestjs/common';
 import type { Ecs } from '@elastic/ecs';
-import type { ClsService } from 'nestjs-cls';
 import type { LogSink } from '../../src/logging/sink.js';
 import type { LogStrategy } from '../../src/logging/strategy.js';
 
@@ -26,10 +27,10 @@ class CapturingSink implements LogSink {
  * const logger = new BetterLogger(makeCls({ url: { path: '/' } }), strategy);
  * ```
  */
-function makeCls(ctx: Partial<Ecs> | undefined): ClsService {
-  return {
-    get: jest.fn().mockReturnValue(ctx),
-  } as unknown as ClsService;
+function makeCls(ctx?: Partial<Ecs>): ClsService {
+  const cls = new ClsService(new AsyncLocalStorage());
+  jest.spyOn(cls, 'get').mockReturnValue(ctx);
+  return cls;
 }
 
 describe('BetterLogger', () => {

@@ -6,14 +6,47 @@ import { describe, expect, jest, test } from '@jest/globals';
 
 import { createRateLimiter } from '../../../src/services/edge/rate-limit.js';
 // eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
-import type { NextFunction, Request } from 'express';
+import type { NextFunction } from 'express';
+
+/** The request the limiter reads. */
+type LimiterRequest = Parameters<ReturnType<typeof createRateLimiter>>[0];
 
 /** Signature of a Workers Rate Limiting binding's `limit` method. */
 type RateLimit = (options: { key: string }) => Promise<{ success: boolean }>;
 
-const ips = JSON.parse(
+/**
+ * Tells whether the parsed fixture holds the two addresses the tests use.
+ * @param value - The parsed JSON of the fixture file.
+ * @returns True when it has a string `clientIp` and a string `cloudflareIp`.
+ * @example
+ * ```ts
+ * isIps({ clientIp: '203.0.113.5', cloudflareIp: '198.51.100.7' }); // true
+ * ```
+ */
+function isIps(
+  value: unknown,
+): value is { clientIp: string; cloudflareIp: string } {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  return (
+    'clientIp' in value &&
+    typeof value.clientIp === 'string' &&
+    'cloudflareIp' in value &&
+    typeof value.cloudflareIp === 'string'
+  );
+}
+
+const parsedIps: unknown = JSON.parse(
   await readFile(new URL('../../fixtures/ips.json', import.meta.url), 'utf8'),
-) as { clientIp: string; cloudflareIp: string };
+);
+if (!isIps(parsedIps)) {
+  throw new TypeError('ips.json must hold a clientIp and a cloudflareIp');
+}
+const ips = {
+  clientIp: parsedIps.clientIp,
+  cloudflareIp: parsedIps.cloudflareIp,
+};
 
 /**
  * Builds a request-shaped object with a client address and an optional Cloudflare address header.
@@ -25,14 +58,14 @@ const ips = JSON.parse(
  * const req = aRequest('/hook', 'POST');
  * ```
  */
-function aRequest(path: string, method = 'GET'): Request {
+function aRequest(path: string, method = 'GET'): LimiterRequest {
   return {
     path,
     method,
     ip: ips.clientIp,
     get: (name: string) =>
       name === 'cf-connecting-ip' ? ips.cloudflareIp : undefined,
-  } as unknown as Request;
+  };
 }
 
 /** The chained response methods the limiter may call, each returning the response. */
@@ -72,7 +105,7 @@ function aResponse(): FakeResponse {
  */
 async function run(
   limiter: ReturnType<typeof createRateLimiter>,
-  req: Request,
+  req: LimiterRequest,
 ) {
   const res = aResponse();
   const next = jest.fn();

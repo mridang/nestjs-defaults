@@ -38,7 +38,7 @@ class DynamicController {
   }
 
   @ServerTiming('timeit')
-  throwUp() {
+  async throwUp(): Promise<never> {
     throw new Error('Timed failure');
   }
 
@@ -66,7 +66,7 @@ describe('timing.e2e test', () => {
   });
 
   afterAll(async () => {
-    await testModule?.close();
+    await testModule.close();
   });
 
   test('that the timing results are returned when decorated', () =>

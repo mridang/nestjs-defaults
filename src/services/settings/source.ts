@@ -129,9 +129,11 @@ export class AwsSecretsManagerSource implements SecretsSource {
    */
   static parse(data: SecretValue): Record<string, string> {
     if (data.SecretString) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- a secret is JSON written by the owner of the secret and `parse` is public API, so rejecting a value that is not a string would change what it accepts
       return JSON.parse(data.SecretString) as Record<string, string>;
     }
     if (data.SecretBinary) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the binary payload carries the same owner-written JSON as the string payload, and checking its values would change what the public `parse` accepts
       return JSON.parse(
         new TextDecoder('utf-8').decode(data.SecretBinary),
       ) as Record<string, string>;

@@ -21,7 +21,6 @@ export class VersionController {
             return 'brightgreen';
           }
           case undefined:
-          case null:
           case '': {
             return 'gray';
           }

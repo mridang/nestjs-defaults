@@ -1,13 +1,11 @@
 /**
  * @file Tests for the request-context middleware, covering ECS fields and Cloudflare edge metadata.
  */
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { expect, jest, describe, test } from '@jest/globals';
+import { ClsService } from 'nestjs-cls';
 
 import { RequestIdMiddleware } from '../src/correlation.middleware.js';
-// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
-import type { Request, Response } from 'express';
-import type { Ecs } from '@elastic/ecs';
-import type { ClsService } from 'nestjs-cls';
 
 /**
  * Creates a fake CLS service that runs callbacks immediately and records writes.
@@ -19,11 +17,8 @@ import type { ClsService } from 'nestjs-cls';
  * ```
  */
 function makeCls() {
-  const set = jest.fn();
-  const cls = {
-    run: (fn: () => void) => fn(),
-    set,
-  } as unknown as ClsService;
+  const cls = new ClsService(new AsyncLocalStorage());
+  const set = jest.spyOn(cls, 'set');
   return { cls, set };
 }
 
@@ -35,7 +30,7 @@ function makeCls() {
  * const req = baseRequest();
  * ```
  */
-function baseRequest(): Request {
+function baseRequest(): Parameters<RequestIdMiddleware['use']>[0] {
   return {
     headers: {
       'user-agent':
@@ -53,7 +48,7 @@ function baseRequest(): Request {
     ip: '203.0.113.5',
     httpVersion: '1.1',
     _parsedUrl: { query: 'event=push' },
-  } as unknown as Request;
+  };
 }
 
 describe('RequestIdMiddleware', () => {
@@ -61,10 +56,10 @@ describe('RequestIdMiddleware', () => {
     const { cls, set } = makeCls();
     const next = jest.fn();
 
-    new RequestIdMiddleware(cls).use(baseRequest(), {} as Response, next);
+    new RequestIdMiddleware(cls).use(baseRequest(), {}, next);
 
     expect(next).toHaveBeenCalledTimes(1);
-    const context = set.mock.calls[0][1] as Partial<Ecs>;
+    const context: unknown = set.mock.calls[0][1];
     expect(context).toMatchObject({
       url: {
         domain: 'example.com',
@@ -92,7 +87,7 @@ describe('RequestIdMiddleware', () => {
 
   test('maps Cloudflare edge metadata onto ECS geo, as, tls and cloud', () => {
     const { cls, set } = makeCls();
-    const req = baseRequest() as Request & { cf?: Record<string, unknown> };
+    const req = baseRequest();
     req.cf = {
       colo: 'DFW',
       country: 'US',
@@ -110,9 +105,9 @@ describe('RequestIdMiddleware', () => {
       tlsCipher: 'AEAD-AES128-GCM-SHA256',
     };
 
-    new RequestIdMiddleware(cls).use(req, {} as Response, jest.fn());
+    new RequestIdMiddleware(cls).use(req, {}, jest.fn());
 
-    const context = set.mock.calls[0][1] as Partial<Ecs>;
+    const context: unknown = set.mock.calls[0][1];
     expect(context).toMatchObject({
       cloud: { region: 'DFW' },
       client: {

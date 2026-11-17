@@ -28,7 +28,7 @@ describe('version.e2e test', () => {
   });
 
   afterAll(async () => {
-    await testModule?.close();
+    await testModule.close();
   });
 
   test('that a bage is rendered when requested', () =>

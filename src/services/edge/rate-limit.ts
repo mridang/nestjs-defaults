@@ -82,14 +82,22 @@ export function createRateLimiter(options: RateLimitOptions = {}) {
   const exempt = options.exempt ?? DEFAULT_EXEMPT;
   const getEnv = options.env ?? workerEnv;
 
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (
+    req: Pick<Request, 'path' | 'method' | 'ip'> & {
+      get(name: string): string | undefined;
+    },
+    res: Response,
+    next: NextFunction,
+  ) => {
     if (req.method === 'OPTIONS' || isExempt(req.path, exempt)) {
-      return next();
+      next();
+      return;
     }
     const env = await getEnv();
     const binding = env?.[name];
     if (!isBinding(binding)) {
-      return next();
+      next();
+      return;
     }
     const address = req.get('cf-connecting-ip') ?? req.ip ?? 'unknown';
     const allowed = await Promise.resolve()
@@ -99,9 +107,10 @@ export function createRateLimiter(options: RateLimitOptions = {}) {
       })
       .catch(() => true);
     if (allowed) {
-      return next();
+      next();
+      return;
     }
-    return res
+    res
       .status(429)
       .set({
         'Retry-After': String(RETRY_AFTER_SECONDS),

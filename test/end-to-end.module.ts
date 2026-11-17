@@ -1,6 +1,7 @@
 /**
  * @file Shared end-to-end harness that builds a Nest application with the defaults configured.
  */
+import { Server } from 'node:http';
 import { Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import configure from '../src/app.js';
@@ -10,7 +11,6 @@ import type {
   Provider,
   Type,
 } from '@nestjs/common';
-import type { Server } from 'node:http';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { TestingModuleBuilder } from '@nestjs/testing';
 
@@ -65,7 +65,11 @@ export class End2EndModule {
    * @returns The underlying Node HTTP server.
    */
   get server(): Server {
-    return this.app.getHttpServer() as Server;
+    const server: unknown = this.app.getHttpServer();
+    if (!(server instanceof Server)) {
+      throw new TypeError('The application did not create a Node HTTP server');
+    }
+    return server;
   }
 
   async afterAll(): Promise<void> {

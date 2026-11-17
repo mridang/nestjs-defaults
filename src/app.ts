@@ -50,6 +50,26 @@ interface ExpressMiddlewareAdapter {
 }
 
 /**
+ * Tells whether an HTTP adapter exposes the Workers adapter's `useExpressMiddleware`.
+ * @param adapter - The HTTP adapter of the Nest application.
+ * @returns True when the adapter has a `useExpressMiddleware` method.
+ * @example
+ * ```ts
+ * isExpressMiddlewareAdapter(app.getHttpAdapter());
+ * ```
+ */
+function isExpressMiddlewareAdapter(
+  adapter: unknown,
+): adapter is ExpressMiddlewareAdapter {
+  return (
+    typeof adapter === 'object' &&
+    adapter !== null &&
+    'useExpressMiddleware' in adapter &&
+    typeof adapter.useExpressMiddleware === 'function'
+  );
+}
+
+/**
  * Detects whether the application's HTTP adapter wraps Express middleware (the
  * Cloudflare Workers adapter) rather than running it natively (Express).
  * @param nestApp - The Nest application whose HTTP adapter is inspected.
@@ -63,11 +83,8 @@ interface ExpressMiddlewareAdapter {
 function getExpressMiddlewareAdapter(
   nestApp: NestExpressApplication,
 ): ExpressMiddlewareAdapter | undefined {
-  const adapter = nestApp.getHttpAdapter() as unknown as
-    Partial<ExpressMiddlewareAdapter> | undefined;
-  return typeof adapter?.useExpressMiddleware === 'function'
-    ? (adapter as ExpressMiddlewareAdapter)
-    : undefined;
+  const adapter: unknown = nestApp.getHttpAdapter();
+  return isExpressMiddlewareAdapter(adapter) ? adapter : undefined;
 }
 
 /**
