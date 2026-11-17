@@ -10,13 +10,9 @@ import {
 } from '@nestjs/common';
 import { isLogLevelEnabled } from '@nestjs/common/services/utils/is-log-level-enabled.util.js';
 import { ClsService } from 'nestjs-cls';
+import { ECS_VERSION, LOG_STRATEGY, selectStrategy } from './strategy.js';
+import type { LogStrategy } from './strategy.js';
 import type { Ecs } from '@elastic/ecs';
-import {
-  ECS_VERSION,
-  LOG_STRATEGY,
-  selectStrategy,
-  type LogStrategy,
-} from './strategy.js';
 
 /**
  * The `error` portion of an ECS document.
@@ -63,6 +59,12 @@ const DEFAULT_CONTEXT = 'Application';
  * is chosen per runtime, which is what lets a single logger serve every
  * provider without any runtime-specific branching here.
  */
+/** The context string and shaped error pulled out of a log call's trailing parameters. */
+interface InterpretedParams {
+  context: string;
+  error?: EcsErrorFields;
+}
+
 @Injectable()
 export class BetterLogger implements LoggerService {
   /**
@@ -251,10 +253,7 @@ export class BetterLogger implements LoggerService {
    * this.interpret(['Checkout', new Error('x')]); // { context: 'Checkout', error: {...} }
    * ```
    */
-  private interpret(optionalParams: unknown[]): {
-    context: string;
-    error?: EcsErrorFields;
-  } {
+  private interpret(optionalParams: unknown[]): InterpretedParams {
     const error = optionalParams.find(
       (parameter) => parameter instanceof Error,
     );

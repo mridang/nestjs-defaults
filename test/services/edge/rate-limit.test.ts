@@ -3,9 +3,10 @@
  */
 import { readFile } from 'node:fs/promises';
 import { describe, expect, jest, test } from '@jest/globals';
+
+import { createRateLimiter } from '../../../src/services/edge/rate-limit.js';
 // eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
 import type { NextFunction, Request } from 'express';
-import { createRateLimiter } from '../../../src/services/edge/rate-limit.js';
 
 /** Signature of a Workers Rate Limiting binding's `limit` method. */
 type RateLimit = (options: { key: string }) => Promise<{ success: boolean }>;
@@ -86,7 +87,7 @@ describe('createRateLimiter', () => {
       aRequest('/'),
     );
 
-    expect(next).toHaveBeenCalled();
+    expect(next.mock.calls).toHaveLength(1);
   });
 
   test('counts by client address and refuses over the limit', async () => {
@@ -96,9 +97,9 @@ describe('createRateLimiter', () => {
       aRequest('/'),
     );
 
-    expect(limit).toHaveBeenCalledWith({ key: `a:${ips.cloudflareIp}` });
-    expect(next).not.toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(429);
+    expect(limit.mock.calls).toEqual([[{ key: `a:${ips.cloudflareIp}` }]]);
+    expect(next.mock.calls).toHaveLength(0);
+    expect(res.status.mock.calls).toEqual([[429]]);
   });
 
   test('lets requests under the limit through', async () => {
@@ -108,7 +109,7 @@ describe('createRateLimiter', () => {
       aRequest('/'),
     );
 
-    expect(next).toHaveBeenCalled();
+    expect(next.mock.calls).toHaveLength(1);
   });
 
   test('fails open when the binding throws', async () => {
@@ -120,7 +121,7 @@ describe('createRateLimiter', () => {
       aRequest('/'),
     );
 
-    expect(next).toHaveBeenCalled();
+    expect(next.mock.calls).toHaveLength(1);
   });
 
   test.each(['/hook', '/hook/x'])('never counts %s', async (path) => {
@@ -130,8 +131,8 @@ describe('createRateLimiter', () => {
       aRequest(path, 'POST'),
     );
 
-    expect(limit).not.toHaveBeenCalled();
-    expect(next).toHaveBeenCalled();
+    expect(limit.mock.calls).toHaveLength(0);
+    expect(next.mock.calls).toHaveLength(1);
   });
 
   test('uses the configured binding name', async () => {
@@ -144,6 +145,6 @@ describe('createRateLimiter', () => {
       aRequest('/'),
     );
 
-    expect(limit).toHaveBeenCalled();
+    expect(limit.mock.calls).toHaveLength(1);
   });
 });

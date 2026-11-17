@@ -1,14 +1,14 @@
 /**
  * @file Chooses the log output strategy that suits the current runtime.
  */
-import type { Ecs } from '@elastic/ecs';
 import os from 'node:os';
-import type { LogSink } from './sink.js';
 import {
   PrettyConsoleSink,
   StdoutJsonSink,
   StructuredConsoleSink,
 } from './sink.js';
+import type { Ecs } from '@elastic/ecs';
+import type { LogSink } from './sink.js';
 
 /**
  * Injection token used to override the auto-selected {@link LogStrategy}.

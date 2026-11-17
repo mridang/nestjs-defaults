@@ -1,9 +1,11 @@
 /**
  * @file Per-address rate limiter used as Express-style middleware on every request.
  */
+
+import { workerEnv } from './env.js';
+import type { WorkerEnv } from './env.js';
 // eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
 import type { NextFunction, Request, Response } from 'express';
-import { workerEnv, type WorkerEnv } from './env.js';
 
 /** One Workers Rate Limiting binding: `limit` says whether `key` may go ahead. */
 interface RateLimitBinding {
@@ -90,13 +92,12 @@ export function createRateLimiter(options: RateLimitOptions = {}) {
       return next();
     }
     const address = req.get('cf-connecting-ip') ?? req.ip ?? 'unknown';
-    let allowed = true;
-    try {
-      const result = await binding.limit({ key: `a:${address}` });
-      allowed = result.success;
-    } catch {
-      allowed = true;
-    }
+    const allowed = await Promise.resolve()
+      .then(async () => {
+        const result = await binding.limit({ key: `a:${address}` });
+        return result.success;
+      })
+      .catch(() => true);
     if (allowed) {
       return next();
     }

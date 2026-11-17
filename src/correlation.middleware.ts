@@ -1,16 +1,16 @@
 /**
  * @file Middleware that records request-scoped Elastic Common Schema context into CLS.
  */
+import path from 'node:path';
 import { Injectable, NestMiddleware } from '@nestjs/common';
 // eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only or supplies the middleware types; h3 does not provide these types, so the swap is not a drop-in
 import { NextFunction, Request, Response } from 'express';
 import { ClsService } from 'nestjs-cls';
-import type { Ecs } from '@elastic/ecs';
 import UAParser from 'ua-parser-js';
-import path from 'node:path';
+import type { Ecs } from '@elastic/ecs';
 
 /** Matches the TLS protocol prefix of a version string. */
-const TLS_VERSION_PREFIX_PATTERN = /^TLSv/;
+const TLS_VERSION_PREFIX_PATTERN = /^TLSv/u;
 
 /**
  * The subset of Cloudflare's `request.cf` metadata mapped onto ECS. Present
@@ -60,6 +60,7 @@ type EdgeRequest = Request & {
 /**
  * Tracks whether the current isolate has handled a request yet.
  */
+// eslint-disable-next-line functional/no-let -- cold-start status is a fact about previous invocations and must be remembered between requests
 let warm = false;
 
 /**
@@ -229,6 +230,7 @@ export class RequestIdMiddleware implements NestMiddleware {
       return cached;
     }
     const result = new UAParser(userAgent).getResult();
+    // eslint-disable-next-line functional/immutable-data -- filling the cache is the point of the method
     this.uaCache.set(userAgent, result);
     return result;
   }

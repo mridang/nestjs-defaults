@@ -1,12 +1,14 @@
 /**
  * @file Server-rendered error page shown for failed requests.
  */
-import type { FunctionalComponent } from 'preact';
 import { HttpStatus } from '@nestjs/common';
 import { render } from 'preact-render-to-string';
+import type { FunctionalComponent } from 'preact';
 
 /** Sends the visitor back; the error page ships no script, so the link carries the history call. */
+// eslint-disable-next-line no-script-url -- the page ships no script, so the link itself carries the history call
 const GO_BACK_HREF = 'javascript:window.history.back();';
+
 const errors: Record<
   number,
   {
@@ -14,6 +16,7 @@ const errors: Record<
     errorType: string;
     errorMessage: string;
   }
+  // eslint-disable-next-line tslop/no-known-value-widening -- looked up by any HTTP status, so the table must stay an open dictionary
 > = {
   [HttpStatus.BAD_REQUEST]: {
     statusCode: HttpStatus.BAD_REQUEST,
@@ -132,7 +135,7 @@ const ErrorPage: FunctionalComponent<{
         <link
           href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
           rel="stylesheet"
-        ></link>
+        />
         <style>{`
           /* CSS reset */
           html, body, div, span, applet, object, iframe,

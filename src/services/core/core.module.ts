@@ -13,6 +13,7 @@ import { CryptoImpl, FetchImpl } from './types.js';
     },
     {
       provide: CryptoImpl,
+      // eslint-disable-next-line tslop/no-reflect-get -- `globalThis.crypto` is typed as experimental for the Node range this library supports
       useValue: Reflect.get(globalThis, 'crypto'),
     },
   ],

@@ -2,9 +2,9 @@
  * @file Tests for the edge cache interceptor, covering hits, misses, release keys and exclusions.
  */
 import { describe, expect, jest, test } from '@jest/globals';
-import type { CallHandler, ExecutionContext } from '@nestjs/common';
 import { lastValueFrom, of } from 'rxjs';
 import { EdgeCacheInterceptor } from '../../../src/services/edge/edge-cache.interceptor.js';
+import type { CallHandler, ExecutionContext } from '@nestjs/common';
 
 class MemoryCache {
   store = new Map<string, Response>();
@@ -174,8 +174,11 @@ describe('EdgeCacheInterceptor', () => {
     const ctx = aContext('/');
     const handler = jest.fn(() => of('x'));
 
-    await lastValueFrom(build().intercept(ctx.context, { handle: handler }));
+    const body = await lastValueFrom(
+      build().intercept(ctx.context, { handle: handler }),
+    );
 
-    expect(handler).toHaveBeenCalled();
+    expect(body).toBe('x');
+    expect(handler.mock.calls).toHaveLength(1);
   });
 });

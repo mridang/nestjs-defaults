@@ -2,8 +2,6 @@
  * @file End-to-end tests of the default controller, error handling, headers, cookies, validation and the version badge.
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
-import { End2EndModule } from './end-to-end.module.js';
-import { DefaultsModule } from '../src/defaults.module.js';
 import request from 'supertest';
 import {
   Body,
@@ -15,46 +13,49 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
-import type { Request, Response } from 'express';
+
 import { IsEmail, IsNotEmpty } from 'class-validator';
 import { ClsService } from 'nestjs-cls';
+import { DefaultsModule } from '../src/defaults.module.js';
+import { End2EndModule } from './end-to-end.module.js';
+// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only; h3 does not provide these types, so the swap is not a drop-in
+import type { Request, Response } from 'express';
 
 /** Matches the session cookie set by the example app. */
-const SESSION_COOKIE_PATTERN = /test=NestJS/;
+const SESSION_COOKIE_PATTERN = /test=NestJS/u;
 
 /** Matches any non-empty header value. */
-const ANY_CHARACTER_PATTERN = /./;
+const ANY_CHARACTER_PATTERN = /./u;
 
 /** Matches the frame-ancestors directive that blocks framing. */
-const FRAME_ANCESTORS_PATTERN = /frame-ancestors 'none';?/;
+const FRAME_ANCESTORS_PATTERN = /frame-ancestors 'none';?/u;
 
 /** Matches the CSP report-uri directive. */
-const REPORT_URI_PATTERN = /report-uri \/csp\/reports/;
+const REPORT_URI_PATTERN = /report-uri \/csp\/reports/u;
 
 /** Matches the CSP report-to directive. */
-const REPORT_TO_PATTERN = /report-to csp-endpoint/;
+const REPORT_TO_PATTERN = /report-to csp-endpoint/u;
 
 /** Matches the script-src directive allowing the Cloudflare insights script. */
 const SCRIPT_SRC_CLOUDFLARE_PATTERN =
-  /script-src [^;]*static\.cloudflareinsights\.com/;
+  /script-src [^;]*static\.cloudflareinsights\.com/u;
 
 /** Matches the connect-src directive allowing Cloudflare insights. */
 const CONNECT_SRC_CLOUDFLARE_PATTERN =
-  /connect-src [^;]*cloudflareinsights\.com/;
+  /connect-src [^;]*cloudflareinsights\.com/u;
 
 /** Matches the App Total server-timing entry. */
 const APP_TOTAL_SERVER_TIMING_PATTERN =
-  /total;dur=\d+(\.\d+)?;desc="App Total"/;
+  /total;dur=\d+(\.\d+)?;desc="App Total"/u;
 
 /** Matches a plain-text content type. */
-const TEXT_PLAIN_PATTERN = /text\/plain/;
+const TEXT_PLAIN_PATTERN = /text\/plain/u;
 
 /** Matches an inline SVG document. */
-const SVG_PATTERN = /<svg.*?svg>/;
+const SVG_PATTERN = /<svg.*?svg>/u;
 
 /** Matches a JSON content type. */
-const JSON_CONTENT_TYPE_PATTERN = /application\/json/;
+const JSON_CONTENT_TYPE_PATTERN = /application\/json/u;
 
 class TestDTO {
   @IsNotEmpty()
@@ -126,12 +127,11 @@ describe('app.controller test', () => {
     await testModule.afterAll();
   });
 
-  test('that the health-check endpoint is operational', () => {
-    return request(testModule.server)
+  test('that the health-check endpoint is operational', () =>
+    request(testModule.server)
       .get('/health')
       .expect(HttpStatus.NO_CONTENT)
-      .expect('');
-  });
+      .expect(''));
 
   test('that the error-handler handles http-400 errors', async () => {
     const response = await request(testModule.server)
@@ -230,7 +230,7 @@ describe('app.controller test', () => {
     const response = await request(testModule.server)
       .post('/csp/reports')
       .set('Content-Type', 'application/reports+json')
-      .send('[' + '0,'.repeat(20_000) + '0]');
+      .send(`[${'0,'.repeat(20_000)}0]`);
     expect(response.status).toBe(HttpStatus.PAYLOAD_TOO_LARGE);
   });
 

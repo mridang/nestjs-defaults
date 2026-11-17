@@ -1,25 +1,24 @@
 /**
  * @file Applies the standard defaults to a Nest application: logging, filters, security and validation.
  */
-import type { NestExpressApplication } from '@nestjs/platform-express';
-import { CustomHttpExceptionFilter } from './services/errors/errors.filter.js';
 import cookieParser from 'cookie-parser';
 import helm from 'helmet';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
-// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only or supplies the middleware types; h3 does not provide these types, so the swap is not a drop-in
-import type { NextFunction, Request, Response } from 'express';
-import { BetterLogger } from './logging/index.js';
+
 // eslint-disable-next-line e18e/ban-dependencies -- body-parser is the Express middleware this library mounts on the Nest app; milliparsec parses differently, so the swap is not a drop-in
 import bodyParser from 'body-parser';
-import {
-  createRateLimiter,
-  type RateLimitOptions,
-} from './services/edge/rate-limit.js';
+import { BetterLogger } from './logging/index.js';
+import { CustomHttpExceptionFilter } from './services/errors/errors.filter.js';
+import { createRateLimiter } from './services/edge/rate-limit.js';
 import {
   CSP_REPORT_PATH,
   securityHeaders,
 } from './services/headers/security-headers.js';
 import { MAX_REPORT_BYTES } from './services/csp/csp.controller.js';
+import type { RateLimitOptions } from './services/edge/rate-limit.js';
+// eslint-disable-next-line e18e/ban-dependencies -- express is the Nest HTTP adapter this library targets and the import is type-only or supplies the middleware types; h3 does not provide these types, so the swap is not a drop-in
+import type { NextFunction, Request, Response } from 'express';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 
 /** Options for {@link configure}. */
 export interface ConfigureOptions {

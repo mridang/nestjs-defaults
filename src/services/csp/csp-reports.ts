@@ -17,7 +17,7 @@
 
 /** Matches a CSP keyword source that is written without quotes. */
 const CSP_KEYWORD_PATTERN =
-  /^(?:inline|eval|self|trusted-types-sink|wasm-eval)$/;
+  /^(?:inline|eval|self|trusted-types-sink|wasm-eval)$/u;
 
 /** One report, reduced to what is worth a log line. */
 export interface ReportSummary {
@@ -45,7 +45,7 @@ const MAX_REPORTS_PER_REQUEST = 20;
 
 /** The schemes extensions use for their own addresses. */
 const EXTENSION_SCHEME =
-  /^(?:chrome|moz|safari|safari-web|ms-browser|edge)-extension:/i;
+  /^(?:chrome|moz|safari|safari-web|ms-browser|edge)-extension:/iu;
 
 /**
  * Tells whether a value is a plain JSON object rather than an array or null.
@@ -81,7 +81,7 @@ function short(value: unknown, limit: number): string {
     const code = char.codePointAt(0) ?? 0;
     return code < 32 || code === 127 ? ' ' : char;
   }).join('');
-  return printable.replaceAll(/\s+/g, ' ').trim().slice(0, limit);
+  return printable.replaceAll(/\s+/gu, ' ').trim().slice(0, limit);
 }
 
 /**

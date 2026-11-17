@@ -50,14 +50,21 @@ interface SecretValue {
   SecretBinary?: Uint8Array;
 }
 
+/** A command the Secrets Manager client can send, carrying the input it was built from. */
+interface SecretsManagerCommand {
+  readonly input: { readonly SecretId?: string };
+}
+
 /**
  * The subset of `@aws-sdk/client-secrets-manager` this source relies on.
  */
 interface SecretsManagerSdk {
   SecretsManagerClient: new () => {
-    send(command: object): Promise<SecretValue>;
+    send(command: SecretsManagerCommand): Promise<SecretValue>;
   };
-  GetSecretValueCommand: new (input: { SecretId: string }) => object;
+  GetSecretValueCommand: new (input: {
+    SecretId: string;
+  }) => SecretsManagerCommand;
 }
 
 /**

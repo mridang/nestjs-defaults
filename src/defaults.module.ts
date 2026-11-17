@@ -2,6 +2,7 @@
  * @file Root Nest module that wires the default services, controllers and interceptors together.
  */
 import { Global, MiddlewareConsumer, Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { DefaultController } from './app.controller.js';
 import { NodeModule } from './services/core/core.module.js';
 import { BetterLogger } from './logging/index.js';
@@ -15,7 +16,6 @@ import { TimingModule } from './services/timing/index.js';
 import { VersionModule } from './services/version/version.module.js';
 import { CspReportsController } from './services/csp/csp.controller.js';
 import { EdgeCacheInterceptor } from './services/edge/edge-cache.interceptor.js';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 
 export interface DefaultsOptions {
   /**
@@ -62,11 +62,8 @@ export class DefaultsModule {
       VersionModule,
       CoreContinuationModule,
       createAssetsModule(options.assets ?? true),
+      ...((options.sentry ?? true) ? [createInsightsModule()] : []),
     ];
-
-    if (options.sentry ?? true) {
-      imports.push(createInsightsModule());
-    }
 
     return {
       module: DefaultsModule,
